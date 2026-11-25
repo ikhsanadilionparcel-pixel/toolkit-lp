@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Knowledge Hub V2.1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --card-border: rgba(0, 0, 0, 0.08);
+            --input-bg: #f1f5f9;
+            --accent-blue: #0284c7;
+            --accent-purple: #7c3aed;
+            --success-green: #059669;
+            --danger-red: #dc2626;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR LAYOUT --- */
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 16px;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: var(--accent-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 18px;
+        }
+        .brand-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .brand-name { font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .brand-level-tag {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--accent-blue);
+        }
+
+        .nav-section { display: flex; flex-direction: column; gap: 4px; }
+        .nav-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); padding: 8px 8px 4px 8px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .nav-item:hover { background: #f1f5f9; color: var(--text-main); }
+        .nav-item.active { background: rgba(2, 132, 199, 0.08); color: var(--accent-blue); font-weight: 700; }
+
+        /* --- USER AUTH BOX SIDEBAR --- */
+        .auth-user-box {
+            display: none;
+            border-top: 1px solid var(--card-border);
+            padding-top: 12px;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .auth-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .auth-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .auth-details {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .auth-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .auth-email {
+            font-size: 10px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .logout-btn {
+            width: 100%;
+            padding: 7px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            background: #f8fafc;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .logout-btn:hover {
+            background: rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.25);
+            color: var(--danger-red);
+        }
+
+        /* --- MAIN WORKSPACE --- */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 28px 36px;
+            gap: 20px;
+        }
+
+        /* SEARCH BAR & SMART SUGGESTIONS DROPDOWN */
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-container {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            position: relative;
+            z-index: 20;
+        }
+        .search-container input {
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            min-width: 0;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+        .clear-search-btn {
+            background: #e2e8f0;
+            border: none;
+            color: #475569;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 800;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s;
+        }
+        .clear-search-btn:hover { background: var(--danger-red); color: #fff; }
+
+        /* DROPDOWN SUGGESTIONS */
+        .suggestions-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 6px;
+        }
+        .suggestions-dropdown.active {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .suggestion-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 12px;
+        }
+        .suggestion-item:hover, .suggestion-item.keyboard-selected {
+            background: #f1f5f9;
+        }
+        .suggestion-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+        .suggestion-title {
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .suggestion-meta {
+            font-size: 10px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .suggestion-badge {
+            background: rgba(2, 132, 199, 0.08);
+            color: var(--accent-blue);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .suggestion-footer {
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            border-top: 1px solid var(--card-border);
+            cursor: pointer;
+            margin-top: 2px;
+        }
+        .suggestion-footer:hover {
+            background: rgba(2, 132, 199, 0.05);
+            border-radius: 6px;
+        }
+
+        /* CATEGORY SECTION */
+        .category-section {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 10px;
+        }
+
+        .category-card {
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .category-card.active { border-color: var(--accent-blue); background: rgba(2, 132, 199, 0.03); }
+
+        .subcategories-list {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--card-border);
+        }
+        .category-card.expanded .subcategories-list { display: flex; }
+
+        .subcategory-item {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--text-muted);
+        }
+        .subcategory-item.active-sub { background: rgba(2, 132, 199, 0.12); color: var(--accent-blue); font-weight: 700; }
+
+        /* GOVERNANCE TABLE VIEW */
+        .table-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .table-wrapper {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+        th { background: #f8fafc; padding: 12px 16px; border-bottom: 1.5px solid var(--card-border); font-weight: 700; color: var(--text-muted); cursor: pointer; user-select: none; }
+        th:hover { color: var(--accent-blue); }
+        td { padding: 12px 16px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+        tr:hover { background: #f8fafc; }
+
+        .action-btn-icon {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .action-btn-icon:hover { background: #e2e8f0; }
+
+        /* PAGINATION STYLING */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #ffffff;
+            border-top: 1px solid var(--card-border);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .pagination-btns { display: flex; gap: 6px; }
+        .page-btn { padding: 4px 10px; border: 1px solid var(--card-border); background: #f8fafc; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }
+        .page-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* MODAL STYLING */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-detail-content {
+            background: #ffffff;
+            width: 98vw;
+            height: 92vh;
+            padding: 12px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-sizing: border-box;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        /* GOOGLE LOGIN MODAL */
+        .google-login-card {
+            background: #ffffff;
+            width: 92%;
+            max-width: 400px;
+            border-radius: 18px;
+            padding: 28px 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+        }
+        .google-signin-btn {
+            width: 100%;
+            padding: 11px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            background: #ffffff;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            transition: all 0.15s ease;
+        }
+        .google-signin-btn:hover {
+            background: #f8fafc;
+            border-color: var(--accent-blue);
+        }
+
+        .highlight-match {
+            background-color: #fef08a;
+            color: #713f12;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY LOGIN GOOGLE -->
+    <div class="modal-overlay" id="googleLoginModal" style="z-index: 2000; background: rgba(15, 23, 42, 0.78);">
+        <div class="google-login-card">
+            <div style="width: 48px; height: 48px; margin: 0 auto; border-radius: 12px; background: var(--accent-blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800;">K</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main);">Enterprise Knowledge Hub</h3>
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+                    Masuk menggunakan akun Google Anda agar <strong>Favorites</strong> dan <strong>Recently Opened</strong> tersimpan otomatis dan sinkron di semua perangkat.
+                </p>
+            </div>
+            <button class="google-signin-btn" onclick="signInWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span>Lanjutkan dengan Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="brand-header">
+            <div class="brand-logo">K</div>
+            <div class="brand-title-wrap">
+                <span class="brand-name">Knowledge Hub</span>
+                <span class="brand-level-tag" id="sidebarLevelTag">(L1)</span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Navigasi Utama</div>
+            <a class="nav-item active" id="side-nav-all" onclick="switchSidebarMenu('all')">📊 All Knowledge</a>
+            <a class="nav-item" id="side-nav-L1" onclick="setActiveLevel('L1')">📁 Layer 1 (L1)</a>
+            <a class="nav-item" id="side-nav-L2" onclick="setActiveLevel('L2')">📂 Layer 2 (L2)</a>
+            <a class="nav-item" id="side-nav-favorites" onclick="switchSidebarMenu('favorites')">⭐ Favorites</a>
+            <a class="nav-item" id="side-nav-recent" onclick="switchSidebarMenu('recent')">🕒 Recently Opened</a>
+        </div>
+
+        <div class="nav-section" style="margin-top: auto;">
+            <div class="nav-label">Pengaturan</div>
+            <a class="nav-item" onclick="openManageCategoriesModal()">⚙️ Kelola Kategori</a>
+            <a class="nav-item" onclick="openAddInfoModal()">➕ Tambah Materi</a>
+        </div>
+
+        <!-- INFO AKUN GOOGLE -->
+        <div class="auth-user-box" id="authUserBox">
+            <div class="auth-user-info">
+                <img class="auth-avatar" id="userAvatar" src="" alt="Avatar">
+                <div class="auth-details">
+                    <span class="auth-name" id="userName">Pengguna</span>
+                    <span class="auth-email" id="userEmail">-</span>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="signOutGoogle()">🚪 Keluar Akun</button>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE CONTENT -->
+    <main class="main-wrapper">
+
+        <!-- SEARCH BAR DENGAN SMART SUGGESTIONS -->
+        <div class="search-wrapper">
+            <div class="search-container">
+                <span>🔍</span>
+                <input type="text" id="searchInput" placeholder="Cari materi, kata kunci SOP, atau dokumen..." oninput="handleGlobalSearchInput()" onkeydown="handleSearchKeydown(event)">
+                <button class="clear-search-btn" id="clearGlobalSearch" onclick="clearSearch('global')">✕</button>
+            </div>
+            <!-- Dropdown Smart Suggestions -->
+            <div class="suggestions-dropdown" id="suggestionsDropdown">
+                <div id="suggestionsList"></div>
+                <div class="suggestion-footer" onclick="closeSuggestions()">Tampilkan semua hasil pencarian</div>
+            </div>
+        </div>
+
+        <!-- KATEGORI SELEKTIF -->
+        <div class="category-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; font-weight: 700;">📌 Kategori Informasi</span>
+                <small id="activeFilterLabel" style="font-size: 11px; color: var(--text-muted);">Filter aktif: Semua Materi</small>
+            </div>
+            <div class="category-grid" id="categoryGridContainer"></div>
+        </div>
+
+        <!-- TABEL DAFTAR DOKUMEN MATERI -->
+        <div>
+            <div class="table-header-flex">
+                <h3 style="font-size: 15px; font-weight: 800;" id="tableSectionTitle">Daftar Informasi</h3>
+                <small style="font-size: 11px; color: var(--text-muted);">💡 Klik pada judul kolom untuk mengurutkan data (*Sort*)</small>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('title')">Judul Materi <span id="sort-title">↕️</span></th>
+                            <th onclick="sortTable('category')">Kategori <span id="sort-category">↕️</span></th>
+                            <th onclick="sortTable('subcategory')">Subkategori <span id="sort-subcategory">↕️</span></th>
+                            <th onclick="sortTable('updated_at')">Tanggal Perbaruan <span id="sort-updated_at">▼</span></th>
+                            <th style="text-align: right; cursor: default;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="infoTableBodyContainer"></tbody>
+                </table>
+                <div class="pagination-container">
+                    <span id="paginationInfo">Menampilkan 0 materi</span>
+                    <div class="pagination-btns">
+                        <button class="page-btn disabled" id="prevPageBtn" onclick="changePage(-1)">‹ Sebelumnya</button>
+                        <button class="page-btn disabled" id="nextPageBtn" onclick="changePage(1)">Berikutnya ›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL DETAIL MATERI -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-detail-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 6px;">
+                <div>
+                    <span id="modalCategoryBadge" style="background: rgba(2, 132, 199, 0.08); color: var(--accent-blue); padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; margin-bottom: 2px; display:inline-block;"></span>
+                    <h3 id="modalDetailTitle" style="font-size: 15px; font-weight: 800; line-height: 1.2;"></h3>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="search-container" style="padding: 4px 10px; width: 220px;">
+                        <span>🔍</span>
+                        <input type="text" id="internalModalSearch" placeholder="Cari di dalam materi..." oninput="handleInternalSearchInput()">
+                        <button class="clear-search-btn" id="clearInternalSearch" onclick="clearSearch('internal')">✕</button>
+                    </div>
+                    <button class="close-modal-btn" onclick="closeDetailModal()" style="background: #f1f5f9; border: 1px solid var(--card-border); padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">✕ Tutup</button>
+                </div>
+            </div>
+            <div id="modalLinksContainer" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+            <div id="spreadsheetEmbedArea" style="display: flex; flex-direction: column; flex: 1; gap: 2px; overflow: hidden;"></div>
+            <div style="display:flex; flex-direction:column; gap:4px; max-height: 90px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Catatan / Isi Materi:</label>
+                <div id="modalDetailContentText" style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; padding: 6px 8px; font-size: 11px; line-height: 1.4; white-space: pre-wrap; overflow-y: auto; max-height: 60px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI HAPUS DOKUMEN -->
+    <div class="modal-overlay" id="confirmDeleteModal">
+        <div style="background:#fff; width:90%; max-width:400px; border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:14px; text-align:center;">
+            <div style="font-size:36px;">⚠️</div>
+            <h4 style="font-size:15px; font-weight:800; color:var(--text-main);">Konfirmasi Penghapusan</h4>
+            <p style="font-size:12px; color:var(--text-muted);" id="confirmDeleteText">Apakah Anda yakin ingin menghapus materi ini secara permanen?</p>
+            <div style="display:flex; justify-content:center; gap:10px; margin-top:6px;">
+                <button onclick="closeConfirmDeleteModal()" style="padding:8px 16px; background:#f1f5f9; border:1px solid var(--card-border); border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Batal</button>
+                <button id="btnConfirmDeleteExecute" style="padding:8px 16px; background:var(--danger-red); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">Ya, Hapus Permanent</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KELOLA KATEGORI -->
+    <div class="modal-overlay" id="manageCategoryModal">
+        <div style="background:#fff; width:95%; max-width:600px; max-height:85vh; border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--card-border); padding-bottom:8px;">
+                <h3 style="font-size: 15px; font-weight: 700;">⚙️ Kelola Kategori & Subkategori</h3>
+                <button onclick="closeManageCategoriesModal()" style="border:none; background:transparent; cursor:pointer; font-size:16px;">✕</button>
+            </div>
+            <div style="border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+                <h4 style="font-size: 12px; margin-bottom: 6px;">Tambah Kategori Baru</h4>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <select id="newCatLevel" style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);">
+                        <option value="L1">L1</option>
+                        <option value="L2">L2</option>
+                        <option value="BOTH">L1 & L2 (Keduanya)</option>
+                    </select>
+                    <input type="text" id="newCatName" placeholder="Nama Kategori / Subkategori" style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);">
+                    <select id="newCatParent" style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);">
+                        <option value="">-- Kategori Utama (Tanpa Induk) --</option>
+                    </select>
+                    <button onclick="saveNewCategory()" style="padding:8px; background:var(--accent-blue); color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">Simpan Kategori</button>
+                </div>
+            </div>
+            <div>
+                <h4 style="font-size: 12px; margin-bottom: 6px;">Daftar Kategori Terdaftar</h4>
+                <div id="categoryAdminList" style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; max-height: 140px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH/EDIT DOKUMEN -->
+    <div class="modal-overlay" id="addInfoModal">
+        <div style="background:#fff; width:95%; max-width:650px; border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--card-border); padding-bottom:8px;">
+                <h3 id="modalFormTitle" style="font-size: 15px; font-weight: 700;">Tambah Informasi</h3>
+                <button onclick="closeAddInfoModal()" style="border:none; background:transparent; cursor:pointer; font-size:16px;">✕</button>
+            </div>
+            <input type="hidden" id="infoIdInput">
+            <input type="text" id="infoTitleInput" placeholder="Judul Materi..." style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);">
+            <select id="infoCategoryInput" onchange="onModalCategoryChange()" style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);"></select>
+            <select id="infoSubcategoryInput" style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);"></select>
+            <input type="text" id="infoUrlInput" placeholder="Link Utama (Google Spreadsheet / Slide)" style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);">
+            <input type="text" id="infoSecondUrlInput" placeholder="Link Kedua (Opsional)" style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border);">
+            <input type="file" id="infoFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg" style="font-size:11px;">
+            <textarea id="infoContentInput" placeholder="Tuliskan isi/keterangan materi..." style="padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--card-border); min-height:80px;"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button onclick="closeAddInfoModal()" style="padding:6px 12px; background:#f1f5f9; border:none; border-radius:6px; cursor:pointer;">Batal</button>
+                <button onclick="saveInformation()" id="btnSaveInfo" style="padding:6px 12px; background:var(--accent-blue); color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">Simpan Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uiktjkqqbapqglaxqlmg.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpa3Rqa3FxYmFwcWdsYXhxbG1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjk4OTIsImV4cCI6MjEwMTUwNTg5Mn0.PfrgCs3KlJDM5dY5yFshP8L-zbqHQeNEDjp0W6UbUaY';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let userFavorites = [];
+        let userRecents = [];
+
+        let currentActiveLevel = 'L1';
+        let currentSelectedCategory = 'ALL';
+        let currentSelectedSubcategory = '';
+        let currentViewMode = 'all';
+
+        let sortField = 'updated_at';
+        let sortAsc = false;
+        let currentPage = 1;
+        const pageSize = 10;
+        let lastFilteredTotal = 0;
+
+        let dbCategories = [];
+        let sourceInformations = [];
+        let currentActiveItemData = null;
+        let activeSheetName = '';
+        let pendingDeleteId = null;
+        let selectedSuggestionIndex = -1;
+        let isAppInitialized = false;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-wrapper')) {
+                    closeSuggestions();
+                }
+            });
+
+            await initAuthAndData();
+        });
+
+        async function initAuthAndData() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            await handleSessionChange(session);
+
+            supabaseClient.auth.onAuthStateChange(async (_event, newSession) => {
+                await handleSessionChange(newSession);
+            });
+        }
+
+        async function handleSessionChange(session) {
+            const loginModal = document.getElementById('googleLoginModal');
+            const userBox = document.getElementById('authUserBox');
+
+            if (!session || !session.user) {
+                currentUser = null;
+                userFavorites = [];
+                userRecents = [];
+                isAppInitialized = false;
+                userBox.style.display = 'none';
+                loginModal.classList.add('active');
+                return;
+            }
+
+            const isSameUser = currentUser && currentUser.id === session.user.id;
+            currentUser = session.user;
+            loginModal.classList.remove('active');
+            userBox.style.display = 'flex';
+
+            const meta = currentUser.user_metadata || {};
+            document.getElementById('userName').innerText = meta.full_name || meta.name || 'Pengguna';
+            document.getElementById('userEmail').innerText = currentUser.email || '';
+            const avatarEl = document.getElementById('userAvatar');
+            if (meta.avatar_url || meta.picture) {
+                avatarEl.src = meta.avatar_url || meta.picture;
+                avatarEl.style.display = 'block';
+            } else {
+                avatarEl.style.display = 'none';
+            }
+
+            if (!isSameUser || !isAppInitialized) {
+                isAppInitialized = true;
+                await loadUserActivity();
+                await loadCategoriesFromSupabase();
+                await loadSourceInformations();
+                preloadMirrorData();
+            }
+        }
+
+        async function signInWithGoogle() {
+            const redirectUrl = window.location.origin + window.location.pathname;
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: redirectUrl
+                }
+            });
+            if (error) {
+                alert('Gagal login dengan Google: ' + error.message);
+            }
+        }
+
+        async function signOutGoogle() {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
+                alert('Gagal keluar akun: ' + error.message);
+            }
+        }
+
+        async function loadUserActivity() {
+            if (!currentUser) return;
+
+            try {
+                const [{ data: favData, error: favErr }, { data: recentData, error: recErr }] = await Promise.all([
+                    supabaseClient
+                        .from('user_favorites')
+                        .select('item_id')
+                        .eq('user_id', currentUser.id)
+                        .eq('layer', currentActiveLevel),
+                    supabaseClient
+                        .from('user_recents')
+                        .select('item_id, opened_at')
+                        .eq('user_id', currentUser.id)
+                        .eq('layer', currentActiveLevel)
+                        .order('opened_at', { ascending: false })
+                        .limit(15)
+                ]);
+
+                if (favErr) console.error('Error load favorites:', favErr.message);
+                if (recErr) console.error('Error load recents:', recErr.message);
+
+                userFavorites = (favData || []).map(row => String(row.item_id));
+                userRecents = (recentData || []).map(row => String(row.item_id));
+            } catch (e) {
+                console.error('Gagal memuat aktivitas user:', e);
+            }
+        }
+
+        function getGoogleEmbedUrl(url) {
+            if (!url) return null;
+            if (url.includes('docs.google.com/spreadsheets')) {
+                let baseUrl = url.split('/edit')[0];
+                return `${baseUrl}/htmlview?usp=sharing&widget=true&headers=false`;
+            }
+            if (url.includes('docs.google.com/presentation') || url.includes('slides.google.com')) {
+                let baseUrl = url.split('/edit')[0];
+                return `${baseUrl}/embed?start=false&loop=false&delayms=3000`;
+            }
+            return null;
+        }
+
+        async function loadCategoriesFromSupabase() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('categories')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('sort_order', { ascending: true });
+
+                if (!error && data) dbCategories = data;
+            } catch (e) { console.error('Error load categories:', e); }
+        }
+
+        async function setActiveLevel(level) {
+            currentActiveLevel = level;
+            currentSelectedCategory = 'ALL';
+            currentSelectedSubcategory = '';
+            currentViewMode = 'all';
+            currentPage = 1;
+
+            document.querySelectorAll('.sidebar .nav-item').forEach(b => b.classList.remove('active'));
+            const sideBtn = document.getElementById(`side-nav-${level}`);
+            if (sideBtn) sideBtn.classList.add('active');
+
+            document.getElementById('sidebarLevelTag').innerText = `(${level})`;
+            document.getElementById('tableSectionTitle').innerText = 'Daftar Informasi';
+            updateFilterLabel();
+
+            await loadUserActivity();
+            renderCategories();
+            await loadSourceInformations();
+            preloadMirrorData();
+        }
+
+        function switchSidebarMenu(mode) {
+            currentViewMode = mode;
+            currentPage = 1;
+            document.querySelectorAll('.sidebar .nav-item').forEach(b => b.classList.remove('active'));
+
+            if (mode === 'all') {
+                document.getElementById('side-nav-all').classList.add('active');
+                document.getElementById('tableSectionTitle').innerText = 'Daftar Informasi';
+            } else if (mode === 'favorites') {
+                document.getElementById('side-nav-favorites').classList.add('active');
+                document.getElementById('tableSectionTitle').innerText = '⭐ Dokumen Favorit Anda';
+            } else if (mode === 'recent') {
+                document.getElementById('side-nav-recent').classList.add('active');
+                document.getElementById('tableSectionTitle').innerText = '🕒 Dokumen Terakhir Dibuka';
+            }
+            filterInformations();
+        }
+
+        async function toggleFavorite(itemId, event) {
+            event.stopPropagation();
+            if (!currentUser) return signInWithGoogle();
+
+            const idStr = String(itemId);
+            const isExist = userFavorites.includes(idStr);
+
+            if (isExist) {
+                userFavorites = userFavorites.filter(id => id !== idStr);
+                filterInformations();
+
+                const { error } = await supabaseClient
+                    .from('user_favorites')
+                    .delete()
+                    .eq('user_id', currentUser.id)
+                    .eq('layer', currentActiveLevel)
+                    .eq('item_id', idStr);
+
+                if (error) {
+                    console.error('Gagal menghapus favorit:', error.message);
+                    userFavorites.push(idStr);
+                    filterInformations();
+                }
+            } else {
+                userFavorites.push(idStr);
+                filterInformations();
+
+                const { error } = await supabaseClient
+                    .from('user_favorites')
+                    .upsert({
+                        user_id: currentUser.id,
+                        layer: currentActiveLevel,
+                        item_id: idStr
+                    }, { onConflict: 'user_id,layer,item_id' });
+
+                if (error) {
+                    console.error('Gagal menyimpan favorit:', error.message);
+                    userFavorites = userFavorites.filter(id => id !== idStr);
+                    filterInformations();
+                }
+            }
+        }
+
+        async function trackRecentView(itemId) {
+            if (!currentUser) return;
+            const idStr = String(itemId);
+
+            userRecents = [idStr, ...userRecents.filter(id => id !== idStr)].slice(0, 15);
+
+            const { error } = await supabaseClient
+                .from('user_recents')
+                .upsert({
+                    user_id: currentUser.id,
+                    layer: currentActiveLevel,
+                    item_id: idStr,
+                    opened_at: new Date().toISOString()
+                }, { onConflict: 'user_id,layer,item_id' });
+
+            if (error) {
+                console.error('Gagal mencatat riwayat:', error.message);
+            }
+        }
+
+        function sortTable(field) {
+            if (sortField === field) {
+                sortAsc = !sortAsc;
+            } else {
+                sortField = field;
+                sortAsc = true;
+            }
+            document.querySelectorAll('th span').forEach(s => s.innerText = '↕️');
+            const iconSpan = document.getElementById(`sort-${field}`);
+            if (iconSpan) iconSpan.innerText = sortAsc ? '▲' : '▼';
+            filterInformations();
+        }
+
+        function updateFilterLabel() {
+            const labelEl = document.getElementById('activeFilterLabel');
+            if (!labelEl) return;
+            if (currentSelectedCategory === 'ALL') {
+                labelEl.innerText = 'Filter aktif: Semua Materi';
+            } else if (currentSelectedSubcategory) {
+                labelEl.innerText = `Filter aktif: ${currentSelectedCategory} › ${currentSelectedSubcategory}`;
+            } else {
+                labelEl.innerText = `Filter aktif: ${currentSelectedCategory}`;
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryGridContainer');
+            const mainCats = dbCategories.filter(c => !c.parent_id && (c.level === currentActiveLevel || c.level === 'BOTH'));
+
+            let html = `
+                <div class="category-card ${currentSelectedCategory === 'ALL' ? 'active' : ''}" onclick="selectCategory('ALL')">
+                    <div style="display:flex; justify-content:space-between; font-weight:700; font-size:12px;">
+                        <span>📂 Semua Materi</span>
+                        <span>${sourceInformations.length}</span>
+                    </div>
+                </div>
+            `;
+
+            mainCats.forEach(cat => {
+                const isActive = (currentSelectedCategory === cat.name);
+                const subCats = dbCategories.filter(s => s.parent_id === cat.id);
+                const count = sourceInformations.filter(i => i.category === cat.name).length;
+
+                let subHtml = '';
+                if (subCats.length > 0) {
+                    subHtml += `<div class="subcategories-list">`;
+                    subCats.forEach(sub => {
+                        const isSubActive = (currentSelectedSubcategory === sub.name);
+                        subHtml += `
+                            <div class="subcategory-item ${isSubActive ? 'active-sub' : ''}" 
+                                 onclick="event.stopPropagation(); selectSubcategory('${escapeHtml(cat.name)}', '${escapeHtml(sub.name)}')">
+                                📁 ${escapeHtml(sub.name)}
+                            </div>
+                        `;
+                    });
+                    subHtml += `</div>`;
+                }
+
+                html += `
+                    <div class="category-card ${isActive ? 'active expanded' : ''}" onclick="selectCategory('${escapeHtml(cat.name)}')">
+                        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:12px;">
+                            <span>📂 ${escapeHtml(cat.name)}</span>
+                            <span>${count}</span>
+                        </div>
+                        ${subHtml}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function selectCategory(catName) {
+            currentSelectedSubcategory = '';
+            currentSelectedCategory = (currentSelectedCategory === catName) ? 'ALL' : catName;
+            currentPage = 1;
+            updateFilterLabel();
+            renderCategories();
+            filterInformations();
+        }
+
+        function selectSubcategory(catName, subName) {
+            currentSelectedCategory = catName;
+            currentSelectedSubcategory = subName;
+            currentPage = 1;
+            updateFilterLabel();
+            renderCategories();
+            filterInformations();
+        }
+
+        async function loadSourceInformations() {
+            const tableName = currentActiveLevel === 'L1' ? 'source_informasi' : 'source_informasi2';
+            const { data, error } = await supabaseClient.from(tableName).select('*').order('updated_at', { ascending: false });
+
+            if (error) {
+                console.error('Gagal mengambil data materi:', error.message);
+                document.getElementById('infoTableBodyContainer').innerHTML = `
+                    <tr><td colspan="5" style="text-align:center; color:var(--danger-red); font-size:12px; padding:30px;">
+                        ⚠️ Gagal memuat data dari database: ${escapeHtml(error.message)}
+                    </td></tr>`;
+                return;
+            }
+
+            sourceInformations = data || [];
+            renderCategories();
+            filterInformations();
+        }
+
+        // --- LIVE SEARCH & SMART SUGGESTIONS ---
+        function handleGlobalSearchInput() {
+            const input = document.getElementById('searchInput');
+            const query = input.value.trim();
+            const clearBtn = document.getElementById('clearGlobalSearch');
+
+            clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
+            currentPage = 1;
+            filterInformations();
+
+            if (query.length >= 2) {
+                showSuggestions(query);
+            } else {
+                closeSuggestions();
+            }
+        }
+
+        function showSuggestions(query) {
+            const dropdown = document.getElementById('suggestionsDropdown');
+            const listContainer = document.getElementById('suggestionsList');
+            const lowerQuery = query.toLowerCase();
+
+            const matches = sourceInformations.filter(item =>
+                (item.title || '').toLowerCase().includes(lowerQuery) ||
+                (item.category || '').toLowerCase().includes(lowerQuery) ||
+                (item.subcategory || '').toLowerCase().includes(lowerQuery) ||
+                (item.content || '').toLowerCase().includes(lowerQuery)
+            ).slice(0, 5);
+
+            if (matches.length === 0) {
+                listContainer.innerHTML = `<div style="padding: 12px; text-align: center; font-size: 11px; color: var(--text-muted);">Tidak ada saran ditemukan</div>`;
+                dropdown.classList.add('active');
+                return;
+            }
+
+            selectedSuggestionIndex = -1;
+            listContainer.innerHTML = matches.map((item, idx) => {
+                const highlightedTitle = highlightMatchText(item.title, query);
+                return `
+                    <div class="suggestion-item" id="suggestion-item-${idx}" onclick='openDetailModalFromObj(${JSON.stringify(item)}); closeSuggestions();'>
+                        <div class="suggestion-info">
+                            <span class="suggestion-title">${highlightedTitle}</span>
+                            <div class="suggestion-meta">
+                                <span class="suggestion-badge">${currentActiveLevel}</span>
+                                <span>${escapeHtml(item.category || 'Umum')} ${item.subcategory ? '› ' + escapeHtml(item.subcategory) : ''}</span>
+                            </div>
+                        </div>
+                        <span style="font-size: 10px; color: var(--text-muted);">Buka ↗</span>
+                    </div>
+                `;
+            }).join('');
+
+            dropdown.classList.add('active');
+        }
+
+        function highlightMatchText(text, query) {
+            if (!text) return '';
+            const escapedText = escapeHtml(text);
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+            return escapedText.replace(regex, '<span class="highlight-match">$1</span>');
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+        }
+
+        function closeSuggestions() {
+            document.getElementById('suggestionsDropdown').classList.remove('active');
+            selectedSuggestionIndex = -1;
+        }
+
+        function handleSearchKeydown(event) {
+            const dropdown = document.getElementById('suggestionsDropdown');
+            const items = dropdown.querySelectorAll('.suggestion-item');
+
+            if (!dropdown.classList.contains('active') || items.length === 0) {
+                if (event.key === 'Escape') closeSuggestions();
+                return;
+            }
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+                updateKeyboardSelection(items);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                selectedSuggestionIndex = (selectedSuggestionIndex - 1 + items.length) % items.length;
+                updateKeyboardSelection(items);
+            } else if (event.key === 'Enter') {
+                if (selectedSuggestionIndex >= 0 && items[selectedSuggestionIndex]) {
+                    event.preventDefault();
+                    items[selectedSuggestionIndex].click();
+                } else {
+                    closeSuggestions();
+                }
+            } else if (event.key === 'Escape') {
+                closeSuggestions();
+            }
+        }
+
+        function updateKeyboardSelection(items) {
+            items.forEach((item, idx) => {
+                if (idx === selectedSuggestionIndex) {
+                    item.classList.add('keyboard-selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('keyboard-selected');
+                }
+            });
+        }
+
+        function handleInternalSearchInput() {
+            const input = document.getElementById('internalModalSearch');
+            const clearBtn = document.getElementById('clearInternalSearch');
+            clearBtn.style.display = input.value.length > 0 ? 'flex' : 'none';
+            filterInternalContent(input.value);
+        }
+
+        function clearSearch(type) {
+            if (type === 'global') {
+                const input = document.getElementById('searchInput');
+                input.value = '';
+                document.getElementById('clearGlobalSearch').style.display = 'none';
+                closeSuggestions();
+                currentPage = 1;
+                filterInformations();
+                input.focus();
+            } else if (type === 'internal') {
+                const input = document.getElementById('internalModalSearch');
+                input.value = '';
+                document.getElementById('clearInternalSearch').style.display = 'none';
+                filterInternalContent('');
+                input.focus();
+            }
+        }
+
+        function filterInformations() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
+            const favs = userFavorites;
+            const recents = userRecents;
+
+            let filtered = sourceInformations.filter(item => {
+                const matchCat = (currentSelectedCategory === 'ALL' || item.category === currentSelectedCategory);
+                const matchSub = (!currentSelectedSubcategory || item.subcategory === currentSelectedSubcategory);
+                const matchSearch = !searchInput ||
+                    (item.title || '').toLowerCase().includes(searchInput) ||
+                    (item.category || '').toLowerCase().includes(searchInput) ||
+                    (item.subcategory || '').toLowerCase().includes(searchInput) ||
+                    (item.content || '').toLowerCase().includes(searchInput);
+                return matchCat && matchSub && matchSearch;
+            });
+
+            if (currentViewMode === 'favorites') {
+                filtered = filtered.filter(item => favs.includes(String(item.id)));
+            } else if (currentViewMode === 'recent') {
+                filtered = filtered.filter(item => recents.includes(String(item.id)));
+                filtered.sort((a, b) => recents.indexOf(String(a.id)) - recents.indexOf(String(b.id)));
+            }
+
+            if (currentViewMode !== 'recent') {
+                filtered.sort((a, b) => {
+                    let valA = a[sortField] || '';
+                    let valB = b[sortField] || '';
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+                    if (valA < valB) return sortAsc ? -1 : 1;
+                    if (valA > valB) return sortAsc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            lastFilteredTotal = filtered.length;
+            const totalItems = filtered.length;
+            const totalPages = Math.ceil(totalItems / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const pageData = filtered.slice(startIndex, startIndex + pageSize);
+
+            document.getElementById('paginationInfo').innerText = `Menampilkan ${totalItems === 0 ? 0 : startIndex + 1}-${Math.min(startIndex + pageSize, totalItems)} dari ${totalItems} materi`;
+
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            prevBtn.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+            nextBtn.className = `page-btn ${currentPage >= totalPages ? 'disabled' : ''}`;
+
+            const container = document.getElementById('infoTableBodyContainer');
+            if (pageData.length === 0) {
+                let msg = 'Tidak ada informasi yang ditemukan.';
+                if (currentViewMode === 'favorites') msg = 'Belum ada dokumen yang ditandai sebagai Favorit pada akun ini.';
+                if (currentViewMode === 'recent') msg = 'Belum ada riwayat dokumen yang dibuka pada akun ini.';
+                container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); font-size:12px; padding:30px;">${msg}</td></tr>`;
+                return;
+            }
+
+            container.innerHTML = pageData.map(item => {
+                const formattedDate = new Date(item.updated_at || item.created_at || Date.now()).toLocaleDateString('id-ID', { dateStyle: 'medium' });
+                const isFav = favs.includes(String(item.id));
+                return `
+                    <tr onclick='openDetailModalFromObj(${JSON.stringify(item)})' style="cursor:pointer;">
+                        <td><strong style="color:var(--text-main);">${escapeHtml(item.title)}</strong></td>
+                        <td><span style="background:rgba(2,132,199,0.08); color:var(--accent-blue); padding:3px 8px; border-radius:6px; font-weight:700; font-size:10px;">${escapeHtml(item.category || 'Umum')}</span></td>
+                        <td>${item.subcategory ? `<span style="background:rgba(124,58,237,0.08); color:var(--accent-purple); padding:3px 8px; border-radius:6px; font-weight:600; font-size:10px;">${escapeHtml(item.subcategory)}</span>` : '-'}</td>
+                        <td style="color:var(--text-muted); font-size:11px;">${formattedDate}</td>
+                        <td style="text-align:right;" onclick="event.stopPropagation()">
+                            <button class="action-btn-icon" onclick="toggleFavorite('${item.id}', event)" title="${isFav ? 'Hapus dari Favorit' : 'Tambah ke Favorit'}">${isFav ? '⭐' : '☆'}</button>
+                            <button class="action-btn-icon" onclick='openEditInfoModal(${JSON.stringify(item)})' title="Edit Dokumen">✏️</button>
+                            <button class="action-btn-icon" onclick="triggerConfirmDelete('${item.id}', '${escapeHtml(item.title)}')" title="Hapus Dokumen">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function changePage(delta) {
+            const totalPages = Math.ceil(lastFilteredTotal / pageSize) || 1;
+
+            if (delta === -1 && currentPage > 1) {
+                currentPage--;
+                filterInformations();
+            } else if (delta === 1 && currentPage < totalPages) {
+                currentPage++;
+                filterInformations();
+            }
+        }
+
+        function triggerConfirmDelete(id, title) {
+            pendingDeleteId = id;
+            document.getElementById('confirmDeleteText').innerText = `Apakah Anda yakin ingin menghapus "${title}"?`;
+            document.getElementById('btnConfirmDeleteExecute').onclick = () => executeDeleteInformation(id);
+            document.getElementById('confirmDeleteModal').classList.add('active');
+        }
+
+        function closeConfirmDeleteModal() {
+            document.getElementById('confirmDeleteModal').classList.remove('active');
+            pendingDeleteId = null;
+        }
+
+        async function executeDeleteInformation(id) {
+            const tableName = currentActiveLevel === 'L1' ? 'source_informasi' : 'source_informasi2';
+            const { error } = await supabaseClient.from(tableName).delete().eq('id', id);
+            closeConfirmDeleteModal();
+            if (!error) loadSourceInformations();
+            else alert('Gagal menghapus: ' + error.message);
+        }
+
+        function parseMarkdown(text) {
+            if (!text) return '';
+            let safeText = escapeHtml(text);
+            safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            return safeText.replace(/
+/g, '<br>');
+        }
+
+        const mirrorApiCache = {};
+
+        async function openDetailModalFromObj(item) {
+            currentActiveItemData = item;
+            trackRecentView(item.id);
+            closeSuggestions();
+
+            document.getElementById('internalModalSearch').value = '';
+            document.getElementById('clearInternalSearch').style.display = 'none';
+            document.getElementById('modalDetailTitle').innerText = item.title || '';
+            document.getElementById('modalCategoryBadge').innerText = `${item.category || 'Umum'} ${item.subcategory ? ' › ' + item.subcategory : ''}`;
+            document.getElementById('modalDetailContentText').innerHTML = parseMarkdown(item.content || '');
+
+            let linksHtml = '';
+            if (item.url) linksHtml += `<a href="${item.url}" target="_blank" style="background:rgba(2,132,199,0.08); border:1px solid rgba(2,132,199,0.2); color:var(--accent-blue); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; text-decoration:none;" onclick="event.stopPropagation()">🔗 Buka Link Utama di Tab Baru</a>`;
+            if (item.second_url) linksHtml += `<a href="${item.second_url}" target="_blank" style="background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.2); color:var(--accent-purple); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; text-decoration:none;" onclick="event.stopPropagation()">🔗 Link Kedua</a>`;
+            if (item.file_url) linksHtml += `<a href="${item.file_url}" target="_blank" style="background:rgba(5,150,105,0.08); border:1px solid rgba(5,150,105,0.2); color:var(--success-green); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; text-decoration:none;" onclick="event.stopPropagation()">📥 Download File</a>`;
+            document.getElementById('modalLinksContainer').innerHTML = linksHtml;
+
+            const embedArea = document.getElementById('spreadsheetEmbedArea');
+
+            if (item.url && item.url.includes('/exec')) {
+                embedArea.innerHTML = `
+                    <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">📊 Data Multi-Sheet (Otomatis dari Mirror):</div>
+                    <div id="dynamicMirrorContainer" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                        <div style="font-size:11px; padding:10px; text-align:center; color:var(--text-muted);">⚡ Memuat data sheet...</div>
+                    </div>
+                `;
+                loadAndRenderSpecificMirrorApi(item.url, 'dynamicMirrorContainer');
+            } else {
+                const embedUrl = getGoogleEmbedUrl(item.url) || getGoogleEmbedUrl(item.second_url);
+                if (embedUrl) {
+                    embedArea.innerHTML = `
+                        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">📊 Pratinjau Dokumen:</div>
+                        <div style="width:100%; flex:1; min-height:200px; border:1px solid var(--card-border); border-radius:8px; overflow:hidden;">
+                            <iframe src="${embedUrl}" style="width:100%; height:100%; border:none;"></iframe>
+                        </div>
+                    `;
+                } else {
+                    embedArea.innerHTML = '';
+                }
+            }
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        async function loadAndRenderSpecificMirrorApi(apiUrl, containerId) {
+            const container = document.getElementById(containerId);
+
+            if (mirrorApiCache[apiUrl]) {
+                renderMirrorContent(mirrorApiCache[apiUrl], apiUrl, containerId);
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 6px; padding: 15px; color: var(--text-muted);">
+                    <div style="width: 20px; height: 20px; border: 3px solid var(--card-border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                    <div style="font-size: 11px; font-weight: 600;">Sedang menarik data sheet...</div>
+                </div>
+                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+            `;
+
+            try {
+                const res = await fetch(apiUrl);
+                const mirrorData = await res.json();
+                mirrorApiCache[apiUrl] = mirrorData;
+                renderMirrorContent(mirrorData, apiUrl, containerId);
+            } catch (err) {
+                container.innerHTML = `<div style="color:var(--danger-red); font-size:11px; padding:10px; text-align:center;">Gagal memuat data mirror: ${err.message}</div>`;
+            }
+        }
+
+        function renderMirrorContent(mirrorData, apiUrl, containerId) {
+            const container = document.getElementById(containerId);
+            const sheetNames = Object.keys(mirrorData);
+
+            if (sheetNames.length === 0) {
+                container.innerHTML = '<div style="font-size:11px; padding:10px; text-align:center;">Tidak ada data sheet.</div>';
+                return;
+            }
+
+            activeSheetName = sheetNames[0];
+
+            let tabsHtml = `<div style="display:flex; gap:4px; overflow-x:auto; padding-bottom:2px; margin-bottom:2px; border-bottom:1px solid var(--card-border);">`;
+            sheetNames.forEach((name, idx) => {
+                tabsHtml += `
+                    <button class="sheet-tab-btn ${idx === 0 ? 'active' : ''}" 
+                            onclick="switchDynamicSheetTab('${encodeURIComponent(apiUrl)}', '${escapeHtml(name)}')"
+                            style="padding:3px 8px; font-size:10px; font-weight:600; border-radius:4px; border:1px solid var(--card-border); background:${idx === 0 ? 'var(--accent-blue)' : '#ffffff'}; color:${idx === 0 ? '#ffffff' : 'var(--text-main)'}; cursor:pointer; white-space:nowrap;">
+                        📄 ${escapeHtml(name)}
+                    </button>
+                `;
+            });
+            tabsHtml += `</div><div id="dynamicTableRenderArea" style="flex:1; overflow:hidden;"></div>`;
+            container.innerHTML = tabsHtml;
+
+            mirrorApiCache[apiUrl] = mirrorData;
+            renderTableRows(mirrorData[activeSheetName], 'dynamicTableRenderArea');
+        }
+
+        async function preloadMirrorData() {
+            try {
+                const execItems = sourceInformations.filter(item => item.url && item.url.includes('/exec'));
+                if (execItems.length === 0) return;
+
+                execItems.forEach(async (item) => {
+                    const apiUrl = item.url;
+                    if (!mirrorApiCache[apiUrl]) {
+                        try {
+                            const res = await fetch(apiUrl);
+                            const mirrorData = await res.json();
+                            mirrorApiCache[apiUrl] = mirrorData;
+                        } catch (e) {
+                            console.warn(`Gagal pre-load untuk ${item.title}:`, e);
+                        }
+                    }
+                });
+            } catch (err) {
+                console.warn("Gagal menjalankan pre-load massal:", err);
+            }
+        }
+
+        function switchDynamicSheetTab(encodedApiUrl, sheetName) {
+            activeSheetName = sheetName;
+            const apiUrl = decodeURIComponent(encodedApiUrl);
+            const mirrorData = mirrorApiCache[apiUrl];
+            if (!mirrorData || !mirrorData[sheetName]) return;
+
+            document.querySelectorAll('.sheet-tab-btn').forEach(btn => {
+                if (btn.innerText.includes(sheetName)) {
+                    btn.style.background = 'var(--accent-blue)';
+                    btn.style.color = '#ffffff';
+                } else {
+                    btn.style.background = '#ffffff';
+                    btn.style.color = 'var(--text-main)';
+                }
+            });
+
+            document.getElementById('internalModalSearch').value = '';
+            document.getElementById('clearInternalSearch').style.display = 'none';
+            renderTableRows(mirrorData[sheetName], 'dynamicTableRenderArea');
+        }
+
+        function renderTableRows(rows, targetContainerId, searchQuery = '') {
+            const tableContainer = document.getElementById(targetContainerId);
+            if (!rows || rows.length === 0) {
+                tableContainer.innerHTML = '<div style="font-size:11px; padding:8px;">Sheet ini kosong</div>';
+                return;
+            }
+
+            const headerRow = rows[0];
+            const dataRows = rows.slice(1);
+
+            const filteredRows = dataRows.filter(row => {
+                if (!searchQuery) return true;
+                return row.some(cell => String(cell || '').toLowerCase().includes(searchQuery.toLowerCase()));
+            });
+
+            let tableHtml = `
+                <div style="overflow:auto; width: 100%; height: 100%; max-height: calc(92vh - 160px); border: 1px solid var(--card-border); border-radius: 6px;">
+                    <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left;">
+                        <thead style="position:sticky; top:0; background:#f1f5f9; z-index:2;">
+                            <tr>
+                                ${headerRow.map(cell => `<th style="padding:5px 8px; border-bottom:2px solid var(--card-border); font-weight:700; white-space:nowrap;">${escapeHtml(String(cell))}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            if (filteredRows.length === 0) {
+                tableHtml += `<tr><td colspan="${headerRow.length}" style="text-align:center; padding:20px; color:var(--text-muted);">Tidak ada hasil yang cocok dengan pencarian.</td></tr>`;
+            } else {
+                tableHtml += filteredRows.map((row, rIdx) => `
+                    <tr style="border-bottom:1px solid var(--card-border); background:${rIdx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                        ${row.map(cell => `
+                            <td style="padding:5px 8px; white-space: pre-wrap; word-break: break-word; vertical-align: top;">
+                                ${formatTableCell(cell, searchQuery)}
+                            </td>
+                        `).join('')}
+                    </tr>
+                `).join('');
+            }
+
+            tableHtml += `</tbody></table></div>`;
+            tableContainer.innerHTML = tableHtml;
+        }
+
+        function formatTableCell(cellValue, query = '') {
+            if (!cellValue) return '';
+            let stringVal = String(cellValue);
+
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(stringVal)) {
+                const date = new Date(stringVal);
+                if (!isNaN(date.getTime())) {
+                    stringVal = date.toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                }
+            }
+
+            const escaped = escapeHtml(stringVal);
+            if (!query) return escaped;
+
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+            return escaped.replace(regex, '<span class="highlight-match">$1</span>');
+        }
+
+        function filterInternalContent(query) {
+            if (currentActiveItemData) {
+                const contentDiv = document.getElementById('modalDetailContentText');
+                const rawContent = currentActiveItemData.content || '';
+                if (query.trim() !== '') {
+                    const parsed = parseMarkdown(rawContent);
+                    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+                    contentDiv.innerHTML = parsed.replace(regex, '<span class="highlight-match">$1</span>');
+                } else {
+                    contentDiv.innerHTML = parseMarkdown(rawContent);
+                }
+            }
+
+            if (currentActiveItemData && currentActiveItemData.url && currentActiveItemData.url.includes('/exec')) {
+                const apiUrl = currentActiveItemData.url;
+                if (mirrorApiCache[apiUrl] && mirrorApiCache[apiUrl][activeSheetName]) {
+                    renderTableRows(mirrorApiCache[apiUrl][activeSheetName], 'dynamicTableRenderArea', query);
+                }
+            }
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+            document.getElementById('spreadsheetEmbedArea').innerHTML = '';
+            currentActiveItemData = null;
+            filterInformations();
+        }
+
+        function openManageCategoriesModal() {
+            const parentSelect = document.getElementById('newCatParent');
+            parentSelect.innerHTML = '<option value="">-- Kategori Utama (Tanpa Induk) --</option>';
+
+            const mainCats = dbCategories.filter(c => !c.parent_id);
+            mainCats.forEach(m => {
+                parentSelect.innerHTML += `<option value="${m.id}">${escapeHtml(m.name)} (${m.level})</option>`;
+            });
+
+            const adminList = document.getElementById('categoryAdminList');
+            adminList.innerHTML = dbCategories.map(c => `
+                <div style="background:#f1f5f9; padding:4px 8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>${c.parent_id ? '↳ Sub: ' : '• Utama: '} <strong>${escapeHtml(c.name)}</strong> (${c.level})</span>
+                    <button onclick="toggleDeleteCategory('${c.id}')" style="border:none; background:transparent; color:red; cursor:pointer;">✕ Nonaktifkan</button>
+                </div>
+            `).join('');
+
+            document.getElementById('manageCategoryModal').classList.add('active');
+        }
+
+        function closeManageCategoriesModal() {
+            document.getElementById('manageCategoryModal').classList.remove('active');
+            renderCategories();
+        }
+
+        async function saveNewCategory() {
+            const level = document.getElementById('newCatLevel').value;
+            const name = document.getElementById('newCatName').value.trim();
+            const parent_id = document.getElementById('newCatParent').value || null;
+
+            if (!name) return alert('Nama kategori wajib diisi!');
+
+            const { error } = await supabaseClient.from('categories').insert([{ level, name, parent_id }]);
+            if (error) alert('Gagal simpan: ' + error.message);
+            else {
+                alert('Kategori berhasil ditambahkan!');
+                document.getElementById('newCatName').value = '';
+                await loadCategoriesFromSupabase();
+                openManageCategoriesModal();
+            }
+        }
+
+        async function toggleDeleteCategory(id) {
+            if (!confirm('Nonaktifkan kategori ini?')) return;
+            await supabaseClient.from('categories').update({ is_active: false }).eq('id', id);
+            await loadCategoriesFromSupabase();
+            openManageCategoriesModal();
+        }
+
+        function openAddInfoModal() {
+            document.getElementById('modalFormTitle').innerText = `Tambah Informasi Baru (${currentActiveLevel})`;
+            document.getElementById('infoIdInput').value = '';
+            document.getElementById('infoTitleInput').value = '';
+
+            const catSelect = document.getElementById('infoCategoryInput');
+            catSelect.innerHTML = '';
+            const mainCats = dbCategories.filter(c => !c.parent_id && (c.level === currentActiveLevel || c.level === 'BOTH'));
+            mainCats.forEach(c => catSelect.innerHTML += `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`);
+
+            onModalCategoryChange();
+            document.getElementById('infoSubcategoryInput').value = '';
+            document.getElementById('infoUrlInput').value = '';
+            document.getElementById('infoSecondUrlInput').value = '';
+            document.getElementById('infoFileInput').value = '';
+            document.getElementById('infoContentInput').value = '';
+            document.getElementById('btnSaveInfo').innerText = 'Simpan Data';
+            document.getElementById('addInfoModal').classList.add('active');
+        }
+
+        function openEditInfoModal(item) {
+            document.getElementById('modalFormTitle').innerText = `Edit Informasi (${currentActiveLevel})`;
+            document.getElementById('infoIdInput').value = item.id;
+            document.getElementById('infoTitleInput').value = item.title || '';
+
+            const catSelect = document.getElementById('infoCategoryInput');
+            catSelect.innerHTML = '';
+            const mainCats = dbCategories.filter(c => !c.parent_id && (c.level === currentActiveLevel || c.level === 'BOTH'));
+            mainCats.forEach(c => catSelect.innerHTML += `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`);
+
+            document.getElementById('infoCategoryInput').value = item.category || '';
+            onModalCategoryChange(item.subcategory || '');
+
+            document.getElementById('infoUrlInput').value = item.url || '';
+            document.getElementById('infoSecondUrlInput').value = item.second_url || '';
+            document.getElementById('infoFileInput').value = '';
+            document.getElementById('infoContentInput').value = item.content || '';
+            document.getElementById('btnSaveInfo').innerText = 'Perbarui Data';
+            document.getElementById('addInfoModal').classList.add('active');
+        }
+
+        function onModalCategoryChange(selectedSub = '') {
+            const selectedCatName = document.getElementById('infoCategoryInput').value;
+            const parentObj = dbCategories.find(c => c.name === selectedCatName && !c.parent_id);
+
+            const subSelect = document.getElementById('infoSubcategoryInput');
+            subSelect.innerHTML = '<option value="">-- Tanpa Subkategori --</option>';
+
+            if (parentObj) {
+                const subCats = dbCategories.filter(s => s.parent_id === parentObj.id);
+                subCats.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.name;
+                    opt.textContent = s.name;
+                    if (s.name === selectedSub) opt.selected = true;
+                    subSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function closeAddInfoModal() { document.getElementById('addInfoModal').classList.remove('active'); }
+
+        async function saveInformation() {
+            const id = document.getElementById('infoIdInput').value;
+            const title = document.getElementById('infoTitleInput').value.trim();
+            const category = document.getElementById('infoCategoryInput').value;
+            const subcategory = document.getElementById('infoSubcategoryInput').value;
+            const url = document.getElementById('infoUrlInput').value.trim();
+            const second_url = document.getElementById('infoSecondUrlInput').value.trim();
+            const content = document.getElementById('infoContentInput').value.trim();
+            const fileInput = document.getElementById('infoFileInput');
+
+            if (!title || !content) {
+                alert('Judul dan isi informasi wajib diisi!');
+                return;
+            }
+
+            const saveBtn = document.getElementById('btnSaveInfo');
+            saveBtn.innerText = 'Menyimpan...';
+
+            try {
+                let file_url = undefined;
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const fileName = `${Date.now()}_${file.name}`;
+
+                    const { error: uploadError } = await supabaseClient.storage.from('files').upload(fileName, file);
+                    if (uploadError) throw new Error(uploadError.message);
+
+                    const { data: publicUrlData } = supabaseClient.storage.from('files').getPublicUrl(fileName);
+                    file_url = publicUrlData.publicUrl;
+                }
+
+                let queryData = {
+                    title,
+                    category,
+                    subcategory,
+                    url,
+                    second_url,
+                    content,
+                    updated_at: new Date().toISOString()
+                };
+
+                if (file_url !== undefined) queryData.file_url = file_url;
+
+                const tableName = currentActiveLevel === 'L1' ? 'source_informasi' : 'source_informasi2';
+
+                if (id) {
+                    const { error } = await supabaseClient.from(tableName).update(queryData).eq('id', id);
+                    if (error) throw new Error(error.message);
+                    alert('Berhasil diperbarui!');
+                } else {
+                    const { error } = await supabaseClient.from(tableName).insert([queryData]);
+                    if (error) throw new Error(error.message);
+                    alert('Berhasil disimpan!');
+                }
+
+                closeAddInfoModal();
+                loadSourceInformations();
+            } catch (e) {
+                alert('Gagal: ' + e.message);
+            } finally {
+                saveBtn.innerText = id ? 'Perbarui Data' : 'Simpan Data';
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
