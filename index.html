@@ -93,33 +93,63 @@
         .nav-item:hover { background: #f1f5f9; color: var(--text-main); }
         .nav-item.active { background: rgba(2, 132, 199, 0.08); color: var(--accent-blue); font-weight: 700; }
 
-        /* --- USER AUTH BOX SIDEBAR --- */
-        .auth-user-box {
-            display: none;
+        /* --- AUTH PANEL IN SIDEBAR --- */
+        .auth-panel {
             border-top: 1px solid var(--card-border);
             padding-top: 12px;
+            display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
-        .auth-user-info {
+        .google-btn-sidebar {
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            background: #ffffff;
+            color: var(--text-main);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
-        .auth-avatar {
-            width: 32px;
-            height: 32px;
+        .google-btn-sidebar:hover {
+            background: #f8fafc;
+            border-color: var(--accent-blue);
+        }
+        .user-profile-card {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .user-profile-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .user-avatar-img {
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             object-fit: cover;
-            background: #e2e8f0;
+            background: #cbd5e1;
             flex-shrink: 0;
         }
-        .auth-details {
+        .user-meta-text {
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
-        .auth-name {
+        .user-display-name {
             font-size: 12px;
             font-weight: 700;
             color: var(--text-main);
@@ -127,29 +157,35 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .auth-email {
+        .user-display-email {
             font-size: 10px;
             color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .logout-btn {
+        .sync-badge {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--success-green);
+            background: rgba(5, 150, 105, 0.08);
+            padding: 3px 6px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .btn-logout-small {
             width: 100%;
-            padding: 7px 10px;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            background: #ffffff;
+            color: var(--danger-red);
             font-size: 11px;
             font-weight: 700;
-            border-radius: 8px;
-            border: 1px solid var(--card-border);
-            background: #f8fafc;
-            color: var(--text-main);
             cursor: pointer;
-            transition: all 0.15s;
         }
-        .logout-btn:hover {
-            background: rgba(220, 38, 38, 0.08);
-            border-color: rgba(220, 38, 38, 0.25);
-            color: var(--danger-red);
+        .btn-logout-small:hover {
+            background: rgba(220, 38, 38, 0.06);
         }
 
         /* --- MAIN WORKSPACE --- */
@@ -402,41 +438,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        /* GOOGLE LOGIN MODAL */
-        .google-login-card {
-            background: #ffffff;
-            width: 92%;
-            max-width: 400px;
-            border-radius: 18px;
-            padding: 28px 24px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
-        }
-        .google-signin-btn {
-            width: 100%;
-            padding: 11px 16px;
-            border-radius: 10px;
-            border: 1px solid var(--card-border);
-            background: #ffffff;
-            color: var(--text-main);
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            transition: all 0.15s ease;
-        }
-        .google-signin-btn:hover {
-            background: #f8fafc;
-            border-color: var(--accent-blue);
-        }
-
         .highlight-match {
             background-color: #fef08a;
             color: #713f12;
@@ -447,28 +448,6 @@
     </style>
 </head>
 <body>
-
-    <!-- OVERLAY LOGIN GOOGLE -->
-    <div class="modal-overlay" id="googleLoginModal" style="z-index: 2000; background: rgba(15, 23, 42, 0.78);">
-        <div class="google-login-card">
-            <div style="width: 48px; height: 48px; margin: 0 auto; border-radius: 12px; background: var(--accent-blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800;">K</div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main);">Enterprise Knowledge Hub</h3>
-                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-                    Masuk menggunakan akun Google Anda agar <strong>Favorites</strong> dan <strong>Recently Opened</strong> tersimpan otomatis dan sinkron di semua perangkat.
-                </p>
-            </div>
-            <button class="google-signin-btn" onclick="signInWithGoogle()">
-                <svg width="18" height="18" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                </svg>
-                <span>Lanjutkan dengan Google</span>
-            </button>
-        </div>
-    </div>
 
     <!-- SIDEBAR NAVIGATION -->
     <aside class="sidebar">
@@ -495,16 +474,30 @@
             <a class="nav-item" onclick="openAddInfoModal()">➕ Tambah Materi</a>
         </div>
 
-        <!-- INFO AKUN GOOGLE -->
-        <div class="auth-user-box" id="authUserBox">
-            <div class="auth-user-info">
-                <img class="auth-avatar" id="userAvatar" src="" alt="Avatar">
-                <div class="auth-details">
-                    <span class="auth-name" id="userName">Pengguna</span>
-                    <span class="auth-email" id="userEmail">-</span>
+        <!-- PANEL AUTENTIKASI GOOGLE -->
+        <div class="auth-panel">
+            <div class="nav-label" style="padding-top: 0;">Sinkronisasi Akun</div>
+            <button class="google-btn-sidebar" id="btnGoogleLogin" onclick="signInWithGoogle()">
+                <svg width="16" height="16" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span>Login dengan Google</span>
+            </button>
+
+            <div class="user-profile-card" id="userProfileCard">
+                <div class="user-profile-row">
+                    <img class="user-avatar-img" id="userAvatarImg" src="" alt="Avatar">
+                    <div class="user-meta-text">
+                        <span class="user-display-name" id="userDisplayName">Pengguna</span>
+                        <span class="user-display-email" id="userDisplayEmail">-</span>
+                    </div>
                 </div>
+                <div class="sync-badge" id="syncStatusBadge">☁️ Tersinkron ke Cloud</div>
+                <button class="btn-logout-small" onclick="signOutGoogle()">Keluar Akun</button>
             </div>
-            <button class="logout-btn" onclick="signOutGoogle()">🚪 Keluar Akun</button>
         </div>
     </aside>
 
@@ -563,6 +556,27 @@
             </div>
         </div>
     </main>
+
+    <!-- MODAL PROMPT LOGIN GOOGLE (MUNCUL SAAT KLIK FAVORIT/RECENT JIKA BELUM LOGIN) -->
+    <div class="modal-overlay" id="loginPromptModal" style="z-index: 1500;">
+        <div style="background:#fff; width:92%; max-width:380px; border-radius:16px; padding:24px; display:flex; flex-direction:column; gap:14px; text-align:center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div style="font-size:34px;">🔐</div>
+            <h4 style="font-size:16px; font-weight:800; color:var(--text-main);">Login Google untuk Sinkronisasi</h4>
+            <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">
+                Masuk dengan akun Google agar <strong>Favorites</strong> dan <strong>Recently Opened</strong> tersimpan di akun Anda dan tetap ada meski pindah PC.
+            </p>
+            <button class="google-btn-sidebar" style="padding:11px; font-size:13px;" onclick="signInWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span>Lanjutkan dengan Google</span>
+            </button>
+            <button onclick="closeLoginPromptModal()" style="padding:7px; background:transparent; border:none; color:var(--text-muted); font-size:11px; font-weight:600; cursor:pointer;">Nanti saja (Gunakan penyimpanan lokal)</button>
+        </div>
+    </div>
 
     <!-- MODAL DETAIL MATERI -->
     <div class="modal-overlay" id="detailModal">
@@ -660,8 +674,9 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
-        let userFavorites = [];
-        let userRecents = [];
+        let cloudFavorites = [];
+        let cloudRecents = [];
+        let cloudTablesAvailable = true;
 
         let currentActiveLevel = 'L1';
         let currentSelectedCategory = 'ALL';
@@ -680,7 +695,6 @@
         let activeSheetName = '';
         let pendingDeleteId = null;
         let selectedSuggestionIndex = -1;
-        let isAppInitialized = false;
 
         window.addEventListener('DOMContentLoaded', async () => {
             document.addEventListener('click', (e) => {
@@ -689,58 +703,66 @@
                 }
             });
 
-            await initAuthAndData();
+            await initGoogleAuth();
+            await loadCategoriesFromSupabase();
+            await loadSourceInformations();
+            preloadMirrorData();
         });
 
-        async function initAuthAndData() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            await handleSessionChange(session);
+        async function initGoogleAuth() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                await applyAuthSession(session);
 
-            supabaseClient.auth.onAuthStateChange(async (_event, newSession) => {
-                await handleSessionChange(newSession);
-            });
+                supabaseClient.auth.onAuthStateChange(async (_event, newSession) => {
+                    await applyAuthSession(newSession);
+                    filterInformations();
+                });
+            } catch (err) {
+                console.warn('Auth init warning:', err);
+            }
         }
 
-        async function handleSessionChange(session) {
-            const loginModal = document.getElementById('googleLoginModal');
-            const userBox = document.getElementById('authUserBox');
+        async function applyAuthSession(session) {
+            const loginBtn = document.getElementById('btnGoogleLogin');
+            const profileCard = document.getElementById('userProfileCard');
 
             if (!session || !session.user) {
                 currentUser = null;
-                userFavorites = [];
-                userRecents = [];
-                isAppInitialized = false;
-                userBox.style.display = 'none';
-                loginModal.classList.add('active');
+                cloudFavorites = [];
+                cloudRecents = [];
+                loginBtn.style.display = 'flex';
+                profileCard.style.display = 'none';
                 return;
             }
 
-            const isSameUser = currentUser && currentUser.id === session.user.id;
             currentUser = session.user;
-            loginModal.classList.remove('active');
-            userBox.style.display = 'flex';
+            loginBtn.style.display = 'none';
+            profileCard.style.display = 'flex';
+            closeLoginPromptModal();
 
             const meta = currentUser.user_metadata || {};
-            document.getElementById('userName').innerText = meta.full_name || meta.name || 'Pengguna';
-            document.getElementById('userEmail').innerText = currentUser.email || '';
-            const avatarEl = document.getElementById('userAvatar');
-            if (meta.avatar_url || meta.picture) {
-                avatarEl.src = meta.avatar_url || meta.picture;
+            document.getElementById('userDisplayName').innerText = meta.full_name || meta.name || 'Akun Google';
+            document.getElementById('userDisplayEmail').innerText = currentUser.email || '';
+
+            const avatarEl = document.getElementById('userAvatarImg');
+            const avatarUrl = meta.avatar_url || meta.picture || '';
+            if (avatarUrl) {
+                avatarEl.src = avatarUrl;
                 avatarEl.style.display = 'block';
             } else {
                 avatarEl.style.display = 'none';
             }
 
-            if (!isSameUser || !isAppInitialized) {
-                isAppInitialized = true;
-                await loadUserActivity();
-                await loadCategoriesFromSupabase();
-                await loadSourceInformations();
-                preloadMirrorData();
-            }
+            await syncLocalToCloudIfNeeded();
+            await loadCloudUserActivity();
         }
 
         async function signInWithGoogle() {
+            if (window.location.protocol === 'file:') {
+                alert('Login Google membutuhkan server HTTP/HTTPS (misalnya Live Server atau hosting web), tidak bisa dibuka langsung dari file://.');
+                return;
+            }
             const redirectUrl = window.location.origin + window.location.pathname;
             const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
@@ -749,44 +771,108 @@
                 }
             });
             if (error) {
-                alert('Gagal login dengan Google: ' + error.message);
+                alert('Gagal memulai login Google: ' + error.message);
             }
         }
 
         async function signOutGoogle() {
             const { error } = await supabaseClient.auth.signOut();
             if (error) {
-                alert('Gagal keluar akun: ' + error.message);
+                alert('Gagal logout: ' + error.message);
             }
         }
 
-        async function loadUserActivity() {
-            if (!currentUser) return;
+        function openLoginPromptModal() {
+            document.getElementById('loginPromptModal').classList.add('active');
+        }
 
-            try {
-                const [{ data: favData, error: favErr }, { data: recentData, error: recErr }] = await Promise.all([
-                    supabaseClient
-                        .from('user_favorites')
-                        .select('item_id')
-                        .eq('user_id', currentUser.id)
-                        .eq('layer', currentActiveLevel),
-                    supabaseClient
-                        .from('user_recents')
-                        .select('item_id, opened_at')
-                        .eq('user_id', currentUser.id)
-                        .eq('layer', currentActiveLevel)
-                        .order('opened_at', { ascending: false })
-                        .limit(15)
-                ]);
+        function closeLoginPromptModal() {
+            document.getElementById('loginPromptModal').classList.remove('active');
+        }
 
-                if (favErr) console.error('Error load favorites:', favErr.message);
-                if (recErr) console.error('Error load recents:', recErr.message);
+        async function syncLocalToCloudIfNeeded() {
+            if (!currentUser || !cloudTablesAvailable) return;
+            const localFavs = JSON.parse(localStorage.getItem('kb_favorites') || '[]');
+            const localRecents = JSON.parse(localStorage.getItem('kb_recents') || '[]');
 
-                userFavorites = (favData || []).map(row => String(row.item_id));
-                userRecents = (recentData || []).map(row => String(row.item_id));
-            } catch (e) {
-                console.error('Gagal memuat aktivitas user:', e);
+            if (localFavs.length > 0) {
+                const rows = localFavs.map(id => ({
+                    user_id: currentUser.id,
+                    layer: currentActiveLevel,
+                    item_id: String(id)
+                }));
+                const { error } = await supabaseClient
+                    .from('user_favorites')
+                    .upsert(rows, { onConflict: 'user_id,layer,item_id' });
+                if (!error) localStorage.removeItem('kb_favorites');
             }
+
+            if (localRecents.length > 0) {
+                const rows = localRecents.map((id, idx) => ({
+                    user_id: currentUser.id,
+                    layer: currentActiveLevel,
+                    item_id: String(id),
+                    opened_at: new Date(Date.now() - idx * 1000).toISOString()
+                }));
+                const { error } = await supabaseClient
+                    .from('user_recents')
+                    .upsert(rows, { onConflict: 'user_id,layer,item_id' });
+                if (!error) localStorage.removeItem('kb_recents');
+            }
+        }
+
+        async function loadCloudUserActivity() {
+            if (!currentUser) return;
+            const syncBadge = document.getElementById('syncStatusBadge');
+
+            const [{ data: favData, error: favErr }, { data: recData, error: recErr }] = await Promise.all([
+                supabaseClient
+                    .from('user_favorites')
+                    .select('item_id')
+                    .eq('user_id', currentUser.id)
+                    .eq('layer', currentActiveLevel),
+                supabaseClient
+                    .from('user_recents')
+                    .select('item_id, opened_at')
+                    .eq('user_id', currentUser.id)
+                    .eq('layer', currentActiveLevel)
+                    .order('opened_at', { ascending: false })
+                    .limit(15)
+            ]);
+
+            if (favErr || recErr) {
+                cloudTablesAvailable = false;
+                if (syncBadge) {
+                    syncBadge.innerText = '⚠️ Tabel cloud belum dibuat (mode lokal)';
+                    syncBadge.style.color = '#b45309';
+                    syncBadge.style.background = 'rgba(245, 158, 11, 0.12)';
+                }
+                return;
+            }
+
+            cloudTablesAvailable = true;
+            if (syncBadge) {
+                syncBadge.innerText = '☁️ Tersinkron ke Cloud';
+                syncBadge.style.color = 'var(--success-green)';
+                syncBadge.style.background = 'rgba(5, 150, 105, 0.08)';
+            }
+
+            cloudFavorites = (favData || []).map(r => String(r.item_id));
+            cloudRecents = (recData || []).map(r => String(r.item_id));
+        }
+
+        function getActiveFavoritesList() {
+            if (currentUser && cloudTablesAvailable) {
+                return cloudFavorites;
+            }
+            return JSON.parse(localStorage.getItem('kb_favorites') || '[]').map(String);
+        }
+
+        function getActiveRecentsList() {
+            if (currentUser && cloudTablesAvailable) {
+                return cloudRecents;
+            }
+            return JSON.parse(localStorage.getItem('kb_recents') || '[]').map(String);
         }
 
         function getGoogleEmbedUrl(url) {
@@ -829,7 +915,9 @@
             document.getElementById('tableSectionTitle').innerText = 'Daftar Informasi';
             updateFilterLabel();
 
-            await loadUserActivity();
+            if (currentUser) {
+                await loadCloudUserActivity();
+            }
             renderCategories();
             await loadSourceInformations();
             preloadMirrorData();
@@ -846,74 +934,85 @@
             } else if (mode === 'favorites') {
                 document.getElementById('side-nav-favorites').classList.add('active');
                 document.getElementById('tableSectionTitle').innerText = '⭐ Dokumen Favorit Anda';
+                if (!currentUser && !sessionStorage.getItem('kb_prompt_dismissed')) {
+                    sessionStorage.setItem('kb_prompt_dismissed', '1');
+                    openLoginPromptModal();
+                }
             } else if (mode === 'recent') {
                 document.getElementById('side-nav-recent').classList.add('active');
                 document.getElementById('tableSectionTitle').innerText = '🕒 Dokumen Terakhir Dibuka';
+                if (!currentUser && !sessionStorage.getItem('kb_prompt_dismissed')) {
+                    sessionStorage.setItem('kb_prompt_dismissed', '1');
+                    openLoginPromptModal();
+                }
             }
             filterInformations();
         }
 
         async function toggleFavorite(itemId, event) {
             event.stopPropagation();
-            if (!currentUser) return signInWithGoogle();
-
             const idStr = String(itemId);
-            const isExist = userFavorites.includes(idStr);
 
-            if (isExist) {
-                userFavorites = userFavorites.filter(id => id !== idStr);
-                filterInformations();
-
-                const { error } = await supabaseClient
-                    .from('user_favorites')
-                    .delete()
-                    .eq('user_id', currentUser.id)
-                    .eq('layer', currentActiveLevel)
-                    .eq('item_id', idStr);
-
-                if (error) {
-                    console.error('Gagal menghapus favorit:', error.message);
-                    userFavorites.push(idStr);
+            if (currentUser && cloudTablesAvailable) {
+                const exists = cloudFavorites.includes(idStr);
+                if (exists) {
+                    cloudFavorites = cloudFavorites.filter(id => id !== idStr);
                     filterInformations();
+                    await supabaseClient
+                        .from('user_favorites')
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('layer', currentActiveLevel)
+                        .eq('item_id', idStr);
+                } else {
+                    cloudFavorites.push(idStr);
+                    filterInformations();
+                    await supabaseClient
+                        .from('user_favorites')
+                        .upsert({
+                            user_id: currentUser.id,
+                            layer: currentActiveLevel,
+                            item_id: idStr
+                        }, { onConflict: 'user_id,layer,item_id' });
                 }
+                return;
+            }
+
+            let favs = JSON.parse(localStorage.getItem('kb_favorites') || '[]').map(String);
+            if (favs.includes(idStr)) {
+                favs = favs.filter(id => id !== idStr);
             } else {
-                userFavorites.push(idStr);
-                filterInformations();
-
-                const { error } = await supabaseClient
-                    .from('user_favorites')
-                    .upsert({
-                        user_id: currentUser.id,
-                        layer: currentActiveLevel,
-                        item_id: idStr
-                    }, { onConflict: 'user_id,layer,item_id' });
-
-                if (error) {
-                    console.error('Gagal menyimpan favorit:', error.message);
-                    userFavorites = userFavorites.filter(id => id !== idStr);
-                    filterInformations();
+                favs.push(idStr);
+                if (!currentUser && !sessionStorage.getItem('kb_prompt_dismissed')) {
+                    sessionStorage.setItem('kb_prompt_dismissed', '1');
+                    openLoginPromptModal();
                 }
             }
+            localStorage.setItem('kb_favorites', JSON.stringify(favs));
+            filterInformations();
         }
 
         async function trackRecentView(itemId) {
-            if (!currentUser) return;
             const idStr = String(itemId);
 
-            userRecents = [idStr, ...userRecents.filter(id => id !== idStr)].slice(0, 15);
-
-            const { error } = await supabaseClient
-                .from('user_recents')
-                .upsert({
-                    user_id: currentUser.id,
-                    layer: currentActiveLevel,
-                    item_id: idStr,
-                    opened_at: new Date().toISOString()
-                }, { onConflict: 'user_id,layer,item_id' });
-
-            if (error) {
-                console.error('Gagal mencatat riwayat:', error.message);
+            if (currentUser && cloudTablesAvailable) {
+                cloudRecents = [idStr, ...cloudRecents.filter(id => id !== idStr)].slice(0, 15);
+                await supabaseClient
+                    .from('user_recents')
+                    .upsert({
+                        user_id: currentUser.id,
+                        layer: currentActiveLevel,
+                        item_id: idStr,
+                        opened_at: new Date().toISOString()
+                    }, { onConflict: 'user_id,layer,item_id' });
+                return;
             }
+
+            let recents = JSON.parse(localStorage.getItem('kb_recents') || '[]').map(String);
+            recents = recents.filter(id => id !== idStr);
+            recents.unshift(idStr);
+            if (recents.length > 10) recents.pop();
+            localStorage.setItem('kb_recents', JSON.stringify(recents));
         }
 
         function sortTable(field) {
@@ -1024,7 +1123,6 @@
             filterInformations();
         }
 
-        // --- LIVE SEARCH & SMART SUGGESTIONS ---
         function handleGlobalSearchInput() {
             const input = document.getElementById('searchInput');
             const query = input.value.trim();
@@ -1087,7 +1185,7 @@
         }
 
         function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
         function closeSuggestions() {
@@ -1162,8 +1260,8 @@
 
         function filterInformations() {
             const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
-            const favs = userFavorites;
-            const recents = userRecents;
+            const favs = getActiveFavoritesList();
+            const recents = getActiveRecentsList();
 
             let filtered = sourceInformations.filter(item => {
                 const matchCat = (currentSelectedCategory === 'ALL' || item.category === currentSelectedCategory);
@@ -1213,8 +1311,8 @@
             const container = document.getElementById('infoTableBodyContainer');
             if (pageData.length === 0) {
                 let msg = 'Tidak ada informasi yang ditemukan.';
-                if (currentViewMode === 'favorites') msg = 'Belum ada dokumen yang ditandai sebagai Favorit pada akun ini.';
-                if (currentViewMode === 'recent') msg = 'Belum ada riwayat dokumen yang dibuka pada akun ini.';
+                if (currentViewMode === 'favorites') msg = 'Belum ada dokumen yang ditandai sebagai Favorit.';
+                if (currentViewMode === 'recent') msg = 'Belum ada riwayat dokumen yang dibuka.';
                 container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); font-size:12px; padding:30px;">${msg}</td></tr>`;
                 return;
             }
@@ -1274,8 +1372,7 @@
             if (!text) return '';
             let safeText = escapeHtml(text);
             safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            return safeText.replace(/
-/g, '<br>');
+            return safeText.replace(/\n/g, '<br>');
         }
 
         const mirrorApiCache = {};
