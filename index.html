@@ -26,9 +26,119 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
             height: 100vh;
             overflow: hidden;
+        }
+
+        /* --- LOGIN GATE SCREEN (MUNCUL PERTAMA KALI) --- */
+        .auth-gate-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 2000;
+        }
+        .auth-gate-screen.hidden {
+            display: none;
+        }
+        .auth-gate-card {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 32px 28px;
+            box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.14);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            text-align: center;
+        }
+        .auth-gate-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .auth-gate-logo {
+            width: 44px;
+            height: 44px;
+            background: var(--accent-blue);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .auth-gate-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        .auth-gate-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+        .google-login-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            background: #ffffff;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+        }
+        .google-login-btn:hover {
+            background: #f8fafc;
+            border-color: var(--accent-blue);
+            transform: translateY(-1px);
+        }
+        .google-login-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .auth-status-box {
+            display: none;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(220, 38, 38, 0.08);
+            color: var(--danger-red);
+            text-align: left;
+        }
+        .auth-status-box.visible {
+            display: block;
+        }
+        .auth-footer-note {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* --- MAIN APP SHELL (TERKUNCI SAMPAI LOGIN GOOGLE BERHASIL) --- */
+        .app-shell {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-shell.authenticated {
+            display: flex;
         }
 
         /* --- SIDEBAR LAYOUT --- */
@@ -93,7 +203,7 @@
         .nav-item:hover { background: #f1f5f9; color: var(--text-main); }
         .nav-item.active { background: rgba(2, 132, 199, 0.08); color: var(--accent-blue); font-weight: 700; }
 
-        /* --- AUTH PANEL IN SIDEBAR --- */
+        /* --- USER PROFILE IN SIDEBAR --- */
         .auth-panel {
             border-top: 1px solid var(--card-border);
             padding-top: 12px;
@@ -101,29 +211,8 @@
             flex-direction: column;
             gap: 8px;
         }
-        .google-btn-sidebar {
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--card-border);
-            background: #ffffff;
-            color: var(--text-main);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.15s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-        .google-btn-sidebar:hover {
-            background: #f8fafc;
-            border-color: var(--accent-blue);
-        }
         .user-profile-card {
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 8px;
             background: #f8fafc;
@@ -449,133 +538,129 @@
 </head>
 <body>
 
-    <!-- SIDEBAR NAVIGATION -->
-    <aside class="sidebar">
-        <div class="brand-header">
-            <div class="brand-logo">K</div>
-            <div class="brand-title-wrap">
-                <span class="brand-name">Knowledge Hub</span>
-                <span class="brand-level-tag" id="sidebarLevelTag">(L1)</span>
+    <!-- LAYAR LOGIN GOOGLE PERTAMA KALI MASUK -->
+    <section class="auth-gate-screen" id="authGateScreen">
+        <div class="auth-gate-card">
+            <div class="auth-gate-brand">
+                <div class="auth-gate-logo">K</div>
+                <div class="auth-gate-title">Knowledge Hub</div>
             </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-label">Navigasi Utama</div>
-            <a class="nav-item active" id="side-nav-all" onclick="switchSidebarMenu('all')">📊 All Knowledge</a>
-            <a class="nav-item" id="side-nav-L1" onclick="setActiveLevel('L1')">📁 Layer 1 (L1)</a>
-            <a class="nav-item" id="side-nav-L2" onclick="setActiveLevel('L2')">📂 Layer 2 (L2)</a>
-            <a class="nav-item" id="side-nav-favorites" onclick="switchSidebarMenu('favorites')">⭐ Favorites</a>
-            <a class="nav-item" id="side-nav-recent" onclick="switchSidebarMenu('recent')">🕒 Recently Opened</a>
-        </div>
-
-        <div class="nav-section" style="margin-top: auto;">
-            <div class="nav-label">Pengaturan</div>
-            <a class="nav-item" onclick="openManageCategoriesModal()">⚙️ Kelola Kategori</a>
-            <a class="nav-item" onclick="openAddInfoModal()">➕ Tambah Materi</a>
-        </div>
-
-        <!-- PANEL AUTENTIKASI GOOGLE -->
-        <div class="auth-panel">
-            <div class="nav-label" style="padding-top: 0;">Sinkronisasi Akun</div>
-            <button class="google-btn-sidebar" id="btnGoogleLogin" onclick="signInWithGoogle()">
-                <svg width="16" height="16" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                </svg>
-                <span>Login dengan Google</span>
-            </button>
-
-            <div class="user-profile-card" id="userProfileCard">
-                <div class="user-profile-row">
-                    <img class="user-avatar-img" id="userAvatarImg" src="" alt="Avatar">
-                    <div class="user-meta-text">
-                        <span class="user-display-name" id="userDisplayName">Pengguna</span>
-                        <span class="user-display-email" id="userDisplayEmail">-</span>
-                    </div>
-                </div>
-                <div class="sync-badge" id="syncStatusBadge">☁️ Tersinkron ke Cloud</div>
-                <button class="btn-logout-small" onclick="signOutGoogle()">Keluar Akun</button>
-            </div>
-        </div>
-    </aside>
-
-    <!-- MAIN WORKSPACE CONTENT -->
-    <main class="main-wrapper">
-
-        <!-- SEARCH BAR DENGAN SMART SUGGESTIONS -->
-        <div class="search-wrapper">
-            <div class="search-container">
-                <span>🔍</span>
-                <input type="text" id="searchInput" placeholder="Cari materi, kata kunci SOP, atau dokumen..." oninput="handleGlobalSearchInput()" onkeydown="handleSearchKeydown(event)">
-                <button class="clear-search-btn" id="clearGlobalSearch" onclick="clearSearch('global')">✕</button>
-            </div>
-            <!-- Dropdown Smart Suggestions -->
-            <div class="suggestions-dropdown" id="suggestionsDropdown">
-                <div id="suggestionsList"></div>
-                <div class="suggestion-footer" onclick="closeSuggestions()">Tampilkan semua hasil pencarian</div>
-            </div>
-        </div>
-
-        <!-- KATEGORI SELEKTIF -->
-        <div class="category-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 13px; font-weight: 700;">📌 Kategori Informasi</span>
-                <small id="activeFilterLabel" style="font-size: 11px; color: var(--text-muted);">Filter aktif: Semua Materi</small>
-            </div>
-            <div class="category-grid" id="categoryGridContainer"></div>
-        </div>
-
-        <!-- TABEL DAFTAR DOKUMEN MATERI -->
-        <div>
-            <div class="table-header-flex">
-                <h3 style="font-size: 15px; font-weight: 800;" id="tableSectionTitle">Daftar Informasi</h3>
-                <small style="font-size: 11px; color: var(--text-muted);">💡 Klik pada judul kolom untuk mengurutkan data (*Sort*)</small>
-            </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th onclick="sortTable('title')">Judul Materi <span id="sort-title">↕️</span></th>
-                            <th onclick="sortTable('category')">Kategori <span id="sort-category">↕️</span></th>
-                            <th onclick="sortTable('subcategory')">Subkategori <span id="sort-subcategory">↕️</span></th>
-                            <th onclick="sortTable('updated_at')">Tanggal Perbaruan <span id="sort-updated_at">▼</span></th>
-                            <th style="text-align: right; cursor: default;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="infoTableBodyContainer"></tbody>
-                </table>
-                <div class="pagination-container">
-                    <span id="paginationInfo">Menampilkan 0 materi</span>
-                    <div class="pagination-btns">
-                        <button class="page-btn disabled" id="prevPageBtn" onclick="changePage(-1)">‹ Sebelumnya</button>
-                        <button class="page-btn disabled" id="nextPageBtn" onclick="changePage(1)">Berikutnya ›</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- MODAL PROMPT LOGIN GOOGLE (MUNCUL SAAT KLIK FAVORIT/RECENT JIKA BELUM LOGIN) -->
-    <div class="modal-overlay" id="loginPromptModal" style="z-index: 1500;">
-        <div style="background:#fff; width:92%; max-width:380px; border-radius:16px; padding:24px; display:flex; flex-direction:column; gap:14px; text-align:center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-            <div style="font-size:34px;">🔐</div>
-            <h4 style="font-size:16px; font-weight:800; color:var(--text-main);">Login Google untuk Sinkronisasi</h4>
-            <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">
-                Masuk dengan akun Google agar <strong>Favorites</strong> dan <strong>Recently Opened</strong> tersimpan di akun Anda dan tetap ada meski pindah PC.
+            <p class="auth-gate-subtitle">
+                Masuk dengan akun <strong>Google</strong> melalui Firebase Auth untuk membuka halaman utama toolkit.
             </p>
-            <button class="google-btn-sidebar" style="padding:11px; font-size:13px;" onclick="signInWithGoogle()">
+            <button class="google-login-btn" id="btnGateGoogleLogin" onclick="signInWithGoogle()">
                 <svg width="18" height="18" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                     <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
                     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                     <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                 </svg>
-                <span>Lanjutkan dengan Google</span>
+                <span id="btnGateGoogleLoginText">Masuk dengan Google</span>
             </button>
-            <button onclick="closeLoginPromptModal()" style="padding:7px; background:transparent; border:none; color:var(--text-muted); font-size:11px; font-weight:600; cursor:pointer;">Nanti saja (Gunakan penyimpanan lokal)</button>
+            <div class="auth-status-box" id="authStatusBox"></div>
+            <div class="auth-footer-note">Firebase Authentication • Tanpa kartu kredit</div>
         </div>
+    </section>
+
+    <!-- HALAMAN UTAMA TOOLKIT (BARU MUNCUL SETELAH LOGIN GOOGLE) -->
+    <div class="app-shell" id="appShell">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar">
+            <div class="brand-header">
+                <div class="brand-logo">K</div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">Knowledge Hub</span>
+                    <span class="brand-level-tag" id="sidebarLevelTag">(L1)</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Navigasi Utama</div>
+                <a class="nav-item active" id="side-nav-all" onclick="switchSidebarMenu('all')">📊 All Knowledge</a>
+                <a class="nav-item" id="side-nav-L1" onclick="setActiveLevel('L1')">📁 Layer 1 (L1)</a>
+                <a class="nav-item" id="side-nav-L2" onclick="setActiveLevel('L2')">📂 Layer 2 (L2)</a>
+                <a class="nav-item" id="side-nav-favorites" onclick="switchSidebarMenu('favorites')">⭐ Favorites</a>
+                <a class="nav-item" id="side-nav-recent" onclick="switchSidebarMenu('recent')">🕒 Recently Opened</a>
+            </div>
+
+            <div class="nav-section" style="margin-top: auto;">
+                <div class="nav-label">Pengaturan</div>
+                <a class="nav-item" onclick="openManageCategoriesModal()">⚙️ Kelola Kategori</a>
+                <a class="nav-item" onclick="openAddInfoModal()">➕ Tambah Materi</a>
+            </div>
+
+            <!-- PROFIL AKUN GOOGLE -->
+            <div class="auth-panel">
+                <div class="nav-label" style="padding-top: 0;">Akun Login</div>
+                <div class="user-profile-card" id="userProfileCard">
+                    <div class="user-profile-row">
+                        <img class="user-avatar-img" id="userAvatarImg" src="" alt="Avatar">
+                        <div class="user-meta-text">
+                            <span class="user-display-name" id="userDisplayName">Pengguna</span>
+                            <span class="user-display-email" id="userDisplayEmail">-</span>
+                        </div>
+                    </div>
+                    <div class="sync-badge" id="syncStatusBadge">☁️ Tersinkron</div>
+                    <button class="btn-logout-small" onclick="signOutGoogle()">Keluar Akun</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WORKSPACE CONTENT -->
+        <main class="main-wrapper">
+
+            <!-- SEARCH BAR DENGAN SMART SUGGESTIONS -->
+            <div class="search-wrapper">
+                <div class="search-container">
+                    <span>🔍</span>
+                    <input type="text" id="searchInput" placeholder="Cari materi, kata kunci SOP, atau dokumen..." oninput="handleGlobalSearchInput()" onkeydown="handleSearchKeydown(event)">
+                    <button class="clear-search-btn" id="clearGlobalSearch" onclick="clearSearch('global')">✕</button>
+                </div>
+                <!-- Dropdown Smart Suggestions -->
+                <div class="suggestions-dropdown" id="suggestionsDropdown">
+                    <div id="suggestionsList"></div>
+                    <div class="suggestion-footer" onclick="closeSuggestions()">Tampilkan semua hasil pencarian</div>
+                </div>
+            </div>
+
+            <!-- KATEGORI SELEKTIF -->
+            <div class="category-section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; font-weight: 700;">📌 Kategori Informasi</span>
+                    <small id="activeFilterLabel" style="font-size: 11px; color: var(--text-muted);">Filter aktif: Semua Materi</small>
+                </div>
+                <div class="category-grid" id="categoryGridContainer"></div>
+            </div>
+
+            <!-- TABEL DAFTAR DOKUMEN MATERI -->
+            <div>
+                <div class="table-header-flex">
+                    <h3 style="font-size: 15px; font-weight: 800;" id="tableSectionTitle">Daftar Informasi</h3>
+                    <small style="font-size: 11px; color: var(--text-muted);">💡 Klik pada judul kolom untuk mengurutkan data (*Sort*)</small>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('title')">Judul Materi <span id="sort-title">↕️</span></th>
+                                <th onclick="sortTable('category')">Kategori <span id="sort-category">↕️</span></th>
+                                <th onclick="sortTable('subcategory')">Subkategori <span id="sort-subcategory">↕️</span></th>
+                                <th onclick="sortTable('updated_at')">Tanggal Perbaruan <span id="sort-updated_at">▼</span></th>
+                                <th style="text-align: right; cursor: default;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="infoTableBodyContainer"></tbody>
+                    </table>
+                    <div class="pagination-container">
+                        <span id="paginationInfo">Menampilkan 0 materi</span>
+                        <div class="pagination-btns">
+                            <button class="page-btn disabled" id="prevPageBtn" onclick="changePage(-1)">‹ Sebelumnya</button>
+                            <button class="page-btn disabled" id="nextPageBtn" onclick="changePage(1)">Berikutnya ›</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <!-- MODAL DETAIL MATERI -->
@@ -667,62 +752,36 @@
             </div>
         </div>
     </div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithPopup,
-    signOut,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "API_KEY_ANDA",
-    authDomain: "PROJECT_ID.firebaseapp.com",
-    projectId: "PROJECT_ID",
-    appId: "APP_ID_ANDA"
-  };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+        // Ganti nilai di bawah ini dengan konfigurasi Web App dari Firebase Console Anda
+        const FIREBASE_CONFIG = {
+            apiKey: "GANTI_DENGAN_API_KEY_FIREBASE",
+            authDomain: "GANTI_DENGAN_PROJECT_ID.firebaseapp.com",
+            projectId: "GANTI_DENGAN_PROJECT_ID",
+            appId: "GANTI_DENGAN_APP_ID"
+        };
 
-  window.loginGoogleFirebase = async function () {
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      alert("Gagal login Google: " + err.message);
-    }
-  };
-
-  window.logoutFirebase = async function () {
-    await signOut(auth);
-  };
-
-  onAuthStateChanged(auth, (user) => {
-    const gate = document.getElementById("authGateScreen");
-    const shell = document.getElementById("appShell");
-    if (user) {
-      gate.classList.add("hidden");
-      shell.classList.add("authenticated");
-      document.getElementById("userDisplayName").innerText = user.displayName || "Pengguna Google";
-      document.getElementById("userDisplayEmail").innerText = user.email || "";
-    } else {
-      gate.classList.remove("hidden");
-      shell.classList.remove("authenticated");
-    }
-  });
-</script>
-    <script>
         const SUPABASE_URL = 'https://uiktjkqqbapqglaxqlmg.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpa3Rqa3FxYmFwcWdsYXhxbG1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjk4OTIsImV4cCI6MjEwMTUwNTg5Mn0.PfrgCs3KlJDM5dY5yFshP8L-zbqHQeNEDjp0W6UbUaY';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        const app = initializeApp(FIREBASE_CONFIG);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+        googleProvider.setCustomParameters({ prompt: "select_account" });
+
         let currentUser = null;
-        let cloudFavorites = [];
-        let cloudRecents = [];
-        let cloudTablesAvailable = true;
+        let workspaceInitialized = false;
 
         let currentActiveLevel = 'L1';
         let currentSelectedCategory = 'ALL';
@@ -741,184 +800,126 @@
         let activeSheetName = '';
         let pendingDeleteId = null;
         let selectedSuggestionIndex = -1;
+        const mirrorApiCache = {};
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.search-wrapper')) {
-                    closeSuggestions();
-                }
-            });
-
-            await initGoogleAuth();
-            await loadCategoriesFromSupabase();
-            await loadSourceInformations();
-            preloadMirrorData();
-        });
-
-        async function initGoogleAuth() {
-            try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                await applyAuthSession(session);
-
-                supabaseClient.auth.onAuthStateChange(async (_event, newSession) => {
-                    await applyAuthSession(newSession);
-                    filterInformations();
-                });
-            } catch (err) {
-                console.warn('Auth init warning:', err);
-            }
+        function showAuthError(msg) {
+            const box = document.getElementById('authStatusBox');
+            if (!box) return;
+            box.innerHTML = msg;
+            box.classList.add('visible');
         }
 
-        async function applyAuthSession(session) {
-            const loginBtn = document.getElementById('btnGoogleLogin');
-            const profileCard = document.getElementById('userProfileCard');
+        function clearAuthError() {
+            const box = document.getElementById('authStatusBox');
+            if (!box) return;
+            box.innerHTML = '';
+            box.classList.remove('visible');
+        }
 
-            if (!session || !session.user) {
+        function setLoginButtonLoading(isLoading) {
+            const btn = document.getElementById('btnGateGoogleLogin');
+            const txt = document.getElementById('btnGateGoogleLoginText');
+            if (btn) btn.disabled = isLoading;
+            if (txt) txt.innerText = isLoading ? 'Membuka Google Login...' : 'Masuk dengan Google';
+        }
+
+        window.signInWithGoogle = async function () {
+            clearAuthError();
+            if (window.location.protocol === 'file:') {
+                showAuthError('Login Google membutuhkan server HTTP/HTTPS (seperti Netlify atau Live Server), tidak bisa dibuka langsung dari file://.');
+                return;
+            }
+            if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith('GANTI_')) {
+                showAuthError('Isi dulu objek <strong>FIREBASE_CONFIG</strong> dari Firebase Console sebelum login.');
+                return;
+            }
+            setLoginButtonLoading(true);
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (err) {
+                showAuthError('Gagal login Google: ' + (err.message || err));
+            } finally {
+                setLoginButtonLoading(false);
+            }
+        };
+
+        window.signOutGoogle = async function () {
+            try {
+                await signOut(auth);
+            } catch (err) {
+                alert('Gagal keluar akun: ' + err.message);
+            }
+        };
+
+        async function applyFirebaseUserState(user) {
+            const gateScreen = document.getElementById('authGateScreen');
+            const appShell = document.getElementById('appShell');
+
+            if (!user) {
                 currentUser = null;
-                cloudFavorites = [];
-                cloudRecents = [];
-                loginBtn.style.display = 'flex';
-                profileCard.style.display = 'none';
+                workspaceInitialized = false;
+                gateScreen.classList.remove('hidden');
+                appShell.classList.remove('authenticated');
                 return;
             }
 
-            currentUser = session.user;
-            loginBtn.style.display = 'none';
-            profileCard.style.display = 'flex';
-            closeLoginPromptModal();
+            currentUser = user;
+            clearAuthError();
+            gateScreen.classList.add('hidden');
+            appShell.classList.add('authenticated');
 
-            const meta = currentUser.user_metadata || {};
-            document.getElementById('userDisplayName').innerText = meta.full_name || meta.name || 'Akun Google';
-            document.getElementById('userDisplayEmail').innerText = currentUser.email || '';
+            document.getElementById('userDisplayName').innerText = user.displayName || 'Akun Google';
+            document.getElementById('userDisplayEmail').innerText = user.email || '';
 
             const avatarEl = document.getElementById('userAvatarImg');
-            const avatarUrl = meta.avatar_url || meta.picture || '';
-            if (avatarUrl) {
-                avatarEl.src = avatarUrl;
+            if (user.photoURL) {
+                avatarEl.src = user.photoURL;
                 avatarEl.style.display = 'block';
             } else {
                 avatarEl.style.display = 'none';
             }
 
-            await syncLocalToCloudIfNeeded();
-            await loadCloudUserActivity();
+            if (!workspaceInitialized) {
+                workspaceInitialized = true;
+                await loadCategoriesFromSupabase();
+                await loadSourceInformations();
+                preloadMirrorData();
+            } else {
+                filterInformations();
+            }
         }
 
-        async function signInWithGoogle() {
-            if (window.location.protocol === 'file:') {
-                alert('Login Google membutuhkan server HTTP/HTTPS (misalnya Live Server atau hosting web), tidak bisa dibuka langsung dari file://.');
-                return;
-            }
-            const redirectUrl = window.location.origin + window.location.pathname;
-            const { error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: redirectUrl
+        onAuthStateChanged(auth, async (user) => {
+            await applyFirebaseUserState(user);
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-wrapper')) {
+                    closeSuggestions();
                 }
             });
-            if (error) {
-                alert('Gagal memulai login Google: ' + error.message);
-            }
+        });
+
+        function getUserStorageKey(baseKey) {
+            const uid = currentUser ? currentUser.uid : 'guest';
+            return `${baseKey}_${uid}_${currentActiveLevel}`;
         }
 
-        async function signOutGoogle() {
-            const { error } = await supabaseClient.auth.signOut();
-            if (error) {
-                alert('Gagal logout: ' + error.message);
-            }
+        function getFavoritesList() {
+            return JSON.parse(localStorage.getItem(getUserStorageKey('kb_favorites')) || '[]').map(String);
         }
 
-        function openLoginPromptModal() {
-            document.getElementById('loginPromptModal').classList.add('active');
+        function saveFavoritesList(list) {
+            localStorage.setItem(getUserStorageKey('kb_favorites'), JSON.stringify(list));
         }
 
-        function closeLoginPromptModal() {
-            document.getElementById('loginPromptModal').classList.remove('active');
+        function getRecentsList() {
+            return JSON.parse(localStorage.getItem(getUserStorageKey('kb_recents')) || '[]').map(String);
         }
 
-        async function syncLocalToCloudIfNeeded() {
-            if (!currentUser || !cloudTablesAvailable) return;
-            const localFavs = JSON.parse(localStorage.getItem('kb_favorites') || '[]');
-            const localRecents = JSON.parse(localStorage.getItem('kb_recents') || '[]');
-
-            if (localFavs.length > 0) {
-                const rows = localFavs.map(id => ({
-                    user_id: currentUser.id,
-                    layer: currentActiveLevel,
-                    item_id: String(id)
-                }));
-                const { error } = await supabaseClient
-                    .from('user_favorites')
-                    .upsert(rows, { onConflict: 'user_id,layer,item_id' });
-                if (!error) localStorage.removeItem('kb_favorites');
-            }
-
-            if (localRecents.length > 0) {
-                const rows = localRecents.map((id, idx) => ({
-                    user_id: currentUser.id,
-                    layer: currentActiveLevel,
-                    item_id: String(id),
-                    opened_at: new Date(Date.now() - idx * 1000).toISOString()
-                }));
-                const { error } = await supabaseClient
-                    .from('user_recents')
-                    .upsert(rows, { onConflict: 'user_id,layer,item_id' });
-                if (!error) localStorage.removeItem('kb_recents');
-            }
-        }
-
-        async function loadCloudUserActivity() {
-            if (!currentUser) return;
-            const syncBadge = document.getElementById('syncStatusBadge');
-
-            const [{ data: favData, error: favErr }, { data: recData, error: recErr }] = await Promise.all([
-                supabaseClient
-                    .from('user_favorites')
-                    .select('item_id')
-                    .eq('user_id', currentUser.id)
-                    .eq('layer', currentActiveLevel),
-                supabaseClient
-                    .from('user_recents')
-                    .select('item_id, opened_at')
-                    .eq('user_id', currentUser.id)
-                    .eq('layer', currentActiveLevel)
-                    .order('opened_at', { ascending: false })
-                    .limit(15)
-            ]);
-
-            if (favErr || recErr) {
-                cloudTablesAvailable = false;
-                if (syncBadge) {
-                    syncBadge.innerText = '⚠️ Tabel cloud belum dibuat (mode lokal)';
-                    syncBadge.style.color = '#b45309';
-                    syncBadge.style.background = 'rgba(245, 158, 11, 0.12)';
-                }
-                return;
-            }
-
-            cloudTablesAvailable = true;
-            if (syncBadge) {
-                syncBadge.innerText = '☁️ Tersinkron ke Cloud';
-                syncBadge.style.color = 'var(--success-green)';
-                syncBadge.style.background = 'rgba(5, 150, 105, 0.08)';
-            }
-
-            cloudFavorites = (favData || []).map(r => String(r.item_id));
-            cloudRecents = (recData || []).map(r => String(r.item_id));
-        }
-
-        function getActiveFavoritesList() {
-            if (currentUser && cloudTablesAvailable) {
-                return cloudFavorites;
-            }
-            return JSON.parse(localStorage.getItem('kb_favorites') || '[]').map(String);
-        }
-
-        function getActiveRecentsList() {
-            if (currentUser && cloudTablesAvailable) {
-                return cloudRecents;
-            }
-            return JSON.parse(localStorage.getItem('kb_recents') || '[]').map(String);
+        function saveRecentsList(list) {
+            localStorage.setItem(getUserStorageKey('kb_recents'), JSON.stringify(list));
         }
 
         function getGoogleEmbedUrl(url) {
@@ -946,7 +947,7 @@
             } catch (e) { console.error('Error load categories:', e); }
         }
 
-        async function setActiveLevel(level) {
+        window.setActiveLevel = async function (level) {
             currentActiveLevel = level;
             currentSelectedCategory = 'ALL';
             currentSelectedSubcategory = '';
@@ -961,15 +962,12 @@
             document.getElementById('tableSectionTitle').innerText = 'Daftar Informasi';
             updateFilterLabel();
 
-            if (currentUser) {
-                await loadCloudUserActivity();
-            }
             renderCategories();
             await loadSourceInformations();
             preloadMirrorData();
-        }
+        };
 
-        function switchSidebarMenu(mode) {
+        window.switchSidebarMenu = function (mode) {
             currentViewMode = mode;
             currentPage = 1;
             document.querySelectorAll('.sidebar .nav-item').forEach(b => b.classList.remove('active'));
@@ -980,88 +978,36 @@
             } else if (mode === 'favorites') {
                 document.getElementById('side-nav-favorites').classList.add('active');
                 document.getElementById('tableSectionTitle').innerText = '⭐ Dokumen Favorit Anda';
-                if (!currentUser && !sessionStorage.getItem('kb_prompt_dismissed')) {
-                    sessionStorage.setItem('kb_prompt_dismissed', '1');
-                    openLoginPromptModal();
-                }
             } else if (mode === 'recent') {
                 document.getElementById('side-nav-recent').classList.add('active');
                 document.getElementById('tableSectionTitle').innerText = '🕒 Dokumen Terakhir Dibuka';
-                if (!currentUser && !sessionStorage.getItem('kb_prompt_dismissed')) {
-                    sessionStorage.setItem('kb_prompt_dismissed', '1');
-                    openLoginPromptModal();
-                }
             }
             filterInformations();
-        }
+        };
 
-        async function toggleFavorite(itemId, event) {
+        window.toggleFavorite = function (itemId, event) {
             event.stopPropagation();
             const idStr = String(itemId);
-
-            if (currentUser && cloudTablesAvailable) {
-                const exists = cloudFavorites.includes(idStr);
-                if (exists) {
-                    cloudFavorites = cloudFavorites.filter(id => id !== idStr);
-                    filterInformations();
-                    await supabaseClient
-                        .from('user_favorites')
-                        .delete()
-                        .eq('user_id', currentUser.id)
-                        .eq('layer', currentActiveLevel)
-                        .eq('item_id', idStr);
-                } else {
-                    cloudFavorites.push(idStr);
-                    filterInformations();
-                    await supabaseClient
-                        .from('user_favorites')
-                        .upsert({
-                            user_id: currentUser.id,
-                            layer: currentActiveLevel,
-                            item_id: idStr
-                        }, { onConflict: 'user_id,layer,item_id' });
-                }
-                return;
-            }
-
-            let favs = JSON.parse(localStorage.getItem('kb_favorites') || '[]').map(String);
+            let favs = getFavoritesList();
             if (favs.includes(idStr)) {
                 favs = favs.filter(id => id !== idStr);
             } else {
                 favs.push(idStr);
-                if (!currentUser && !sessionStorage.getItem('kb_prompt_dismissed')) {
-                    sessionStorage.setItem('kb_prompt_dismissed', '1');
-                    openLoginPromptModal();
-                }
             }
-            localStorage.setItem('kb_favorites', JSON.stringify(favs));
+            saveFavoritesList(favs);
             filterInformations();
-        }
+        };
 
-        async function trackRecentView(itemId) {
+        function trackRecentView(itemId) {
             const idStr = String(itemId);
-
-            if (currentUser && cloudTablesAvailable) {
-                cloudRecents = [idStr, ...cloudRecents.filter(id => id !== idStr)].slice(0, 15);
-                await supabaseClient
-                    .from('user_recents')
-                    .upsert({
-                        user_id: currentUser.id,
-                        layer: currentActiveLevel,
-                        item_id: idStr,
-                        opened_at: new Date().toISOString()
-                    }, { onConflict: 'user_id,layer,item_id' });
-                return;
-            }
-
-            let recents = JSON.parse(localStorage.getItem('kb_recents') || '[]').map(String);
+            let recents = getRecentsList();
             recents = recents.filter(id => id !== idStr);
             recents.unshift(idStr);
             if (recents.length > 10) recents.pop();
-            localStorage.setItem('kb_recents', JSON.stringify(recents));
+            saveRecentsList(recents);
         }
 
-        function sortTable(field) {
+        window.sortTable = function (field) {
             if (sortField === field) {
                 sortAsc = !sortAsc;
             } else {
@@ -1072,7 +1018,7 @@
             const iconSpan = document.getElementById(`sort-${field}`);
             if (iconSpan) iconSpan.innerText = sortAsc ? '▲' : '▼';
             filterInformations();
-        }
+        };
 
         function updateFilterLabel() {
             const labelEl = document.getElementById('activeFilterLabel');
@@ -1133,23 +1079,23 @@
             container.innerHTML = html;
         }
 
-        function selectCategory(catName) {
+        window.selectCategory = function (catName) {
             currentSelectedSubcategory = '';
             currentSelectedCategory = (currentSelectedCategory === catName) ? 'ALL' : catName;
             currentPage = 1;
             updateFilterLabel();
             renderCategories();
             filterInformations();
-        }
+        };
 
-        function selectSubcategory(catName, subName) {
+        window.selectSubcategory = function (catName, subName) {
             currentSelectedCategory = catName;
             currentSelectedSubcategory = subName;
             currentPage = 1;
             updateFilterLabel();
             renderCategories();
             filterInformations();
-        }
+        };
 
         async function loadSourceInformations() {
             const tableName = currentActiveLevel === 'L1' ? 'source_informasi' : 'source_informasi2';
@@ -1169,7 +1115,7 @@
             filterInformations();
         }
 
-        function handleGlobalSearchInput() {
+        window.handleGlobalSearchInput = function () {
             const input = document.getElementById('searchInput');
             const query = input.value.trim();
             const clearBtn = document.getElementById('clearGlobalSearch');
@@ -1183,7 +1129,7 @@
             } else {
                 closeSuggestions();
             }
-        }
+        };
 
         function showSuggestions(query) {
             const dropdown = document.getElementById('suggestionsDropdown');
@@ -1234,12 +1180,12 @@
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        function closeSuggestions() {
+        window.closeSuggestions = function () {
             document.getElementById('suggestionsDropdown').classList.remove('active');
             selectedSuggestionIndex = -1;
-        }
+        };
 
-        function handleSearchKeydown(event) {
+        window.handleSearchKeydown = function (event) {
             const dropdown = document.getElementById('suggestionsDropdown');
             const items = dropdown.querySelectorAll('.suggestion-item');
 
@@ -1266,7 +1212,7 @@
             } else if (event.key === 'Escape') {
                 closeSuggestions();
             }
-        }
+        };
 
         function updateKeyboardSelection(items) {
             items.forEach((item, idx) => {
@@ -1279,14 +1225,14 @@
             });
         }
 
-        function handleInternalSearchInput() {
+        window.handleInternalSearchInput = function () {
             const input = document.getElementById('internalModalSearch');
             const clearBtn = document.getElementById('clearInternalSearch');
             clearBtn.style.display = input.value.length > 0 ? 'flex' : 'none';
             filterInternalContent(input.value);
-        }
+        };
 
-        function clearSearch(type) {
+        window.clearSearch = function (type) {
             if (type === 'global') {
                 const input = document.getElementById('searchInput');
                 input.value = '';
@@ -1302,12 +1248,12 @@
                 filterInternalContent('');
                 input.focus();
             }
-        }
+        };
 
         function filterInformations() {
             const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
-            const favs = getActiveFavoritesList();
-            const recents = getActiveRecentsList();
+            const favs = getFavoritesList();
+            const recents = getRecentsList();
 
             let filtered = sourceInformations.filter(item => {
                 const matchCat = (currentSelectedCategory === 'ALL' || item.category === currentSelectedCategory);
@@ -1382,7 +1328,7 @@
             }).join('');
         }
 
-        function changePage(delta) {
+        window.changePage = function (delta) {
             const totalPages = Math.ceil(lastFilteredTotal / pageSize) || 1;
 
             if (delta === -1 && currentPage > 1) {
@@ -1392,19 +1338,19 @@
                 currentPage++;
                 filterInformations();
             }
-        }
+        };
 
-        function triggerConfirmDelete(id, title) {
+        window.triggerConfirmDelete = function (id, title) {
             pendingDeleteId = id;
             document.getElementById('confirmDeleteText').innerText = `Apakah Anda yakin ingin menghapus "${title}"?`;
             document.getElementById('btnConfirmDeleteExecute').onclick = () => executeDeleteInformation(id);
             document.getElementById('confirmDeleteModal').classList.add('active');
-        }
+        };
 
-        function closeConfirmDeleteModal() {
+        window.closeConfirmDeleteModal = function () {
             document.getElementById('confirmDeleteModal').classList.remove('active');
             pendingDeleteId = null;
-        }
+        };
 
         async function executeDeleteInformation(id) {
             const tableName = currentActiveLevel === 'L1' ? 'source_informasi' : 'source_informasi2';
@@ -1421,9 +1367,7 @@
             return safeText.replace(/\n/g, '<br>');
         }
 
-        const mirrorApiCache = {};
-
-        async function openDetailModalFromObj(item) {
+        window.openDetailModalFromObj = async function (item) {
             currentActiveItemData = item;
             trackRecentView(item.id);
             closeSuggestions();
@@ -1465,7 +1409,7 @@
             }
 
             document.getElementById('detailModal').classList.add('active');
-        }
+        };
 
         async function loadAndRenderSpecificMirrorApi(apiUrl, containerId) {
             const container = document.getElementById(containerId);
@@ -1543,7 +1487,7 @@
             }
         }
 
-        function switchDynamicSheetTab(encodedApiUrl, sheetName) {
+        window.switchDynamicSheetTab = function (encodedApiUrl, sheetName) {
             activeSheetName = sheetName;
             const apiUrl = decodeURIComponent(encodedApiUrl);
             const mirrorData = mirrorApiCache[apiUrl];
@@ -1562,7 +1506,7 @@
             document.getElementById('internalModalSearch').value = '';
             document.getElementById('clearInternalSearch').style.display = 'none';
             renderTableRows(mirrorData[sheetName], 'dynamicTableRenderArea');
-        }
+        };
 
         function renderTableRows(rows, targetContainerId, searchQuery = '') {
             const tableContainer = document.getElementById(targetContainerId);
@@ -1651,14 +1595,14 @@
             }
         }
 
-        function closeDetailModal() {
+        window.closeDetailModal = function () {
             document.getElementById('detailModal').classList.remove('active');
             document.getElementById('spreadsheetEmbedArea').innerHTML = '';
             currentActiveItemData = null;
             filterInformations();
-        }
+        };
 
-        function openManageCategoriesModal() {
+        window.openManageCategoriesModal = function () {
             const parentSelect = document.getElementById('newCatParent');
             parentSelect.innerHTML = '<option value="">-- Kategori Utama (Tanpa Induk) --</option>';
 
@@ -1676,14 +1620,14 @@
             `).join('');
 
             document.getElementById('manageCategoryModal').classList.add('active');
-        }
+        };
 
-        function closeManageCategoriesModal() {
+        window.closeManageCategoriesModal = function () {
             document.getElementById('manageCategoryModal').classList.remove('active');
             renderCategories();
-        }
+        };
 
-        async function saveNewCategory() {
+        window.saveNewCategory = async function () {
             const level = document.getElementById('newCatLevel').value;
             const name = document.getElementById('newCatName').value.trim();
             const parent_id = document.getElementById('newCatParent').value || null;
@@ -1698,16 +1642,16 @@
                 await loadCategoriesFromSupabase();
                 openManageCategoriesModal();
             }
-        }
+        };
 
-        async function toggleDeleteCategory(id) {
+        window.toggleDeleteCategory = async function (id) {
             if (!confirm('Nonaktifkan kategori ini?')) return;
             await supabaseClient.from('categories').update({ is_active: false }).eq('id', id);
             await loadCategoriesFromSupabase();
             openManageCategoriesModal();
-        }
+        };
 
-        function openAddInfoModal() {
+        window.openAddInfoModal = function () {
             document.getElementById('modalFormTitle').innerText = `Tambah Informasi Baru (${currentActiveLevel})`;
             document.getElementById('infoIdInput').value = '';
             document.getElementById('infoTitleInput').value = '';
@@ -1725,9 +1669,9 @@
             document.getElementById('infoContentInput').value = '';
             document.getElementById('btnSaveInfo').innerText = 'Simpan Data';
             document.getElementById('addInfoModal').classList.add('active');
-        }
+        };
 
-        function openEditInfoModal(item) {
+        window.openEditInfoModal = function (item) {
             document.getElementById('modalFormTitle').innerText = `Edit Informasi (${currentActiveLevel})`;
             document.getElementById('infoIdInput').value = item.id;
             document.getElementById('infoTitleInput').value = item.title || '';
@@ -1746,9 +1690,9 @@
             document.getElementById('infoContentInput').value = item.content || '';
             document.getElementById('btnSaveInfo').innerText = 'Perbarui Data';
             document.getElementById('addInfoModal').classList.add('active');
-        }
+        };
 
-        function onModalCategoryChange(selectedSub = '') {
+        window.onModalCategoryChange = function (selectedSub = '') {
             const selectedCatName = document.getElementById('infoCategoryInput').value;
             const parentObj = dbCategories.find(c => c.name === selectedCatName && !c.parent_id);
 
@@ -1765,11 +1709,11 @@
                     subSelect.appendChild(opt);
                 });
             }
-        }
+        };
 
-        function closeAddInfoModal() { document.getElementById('addInfoModal').classList.remove('active'); }
+        window.closeAddInfoModal = function () { document.getElementById('addInfoModal').classList.remove('active'); };
 
-        async function saveInformation() {
+        window.saveInformation = async function () {
             const id = document.getElementById('infoIdInput').value;
             const title = document.getElementById('infoTitleInput').value.trim();
             const category = document.getElementById('infoCategoryInput').value;
@@ -1831,7 +1775,7 @@
             } finally {
                 saveBtn.innerText = id ? 'Perbarui Data' : 'Simpan Data';
             }
-        }
+        };
 
         function escapeHtml(text) {
             if (!text) return '';
