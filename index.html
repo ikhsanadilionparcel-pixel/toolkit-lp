@@ -667,7 +667,53 @@
             </div>
         </div>
     </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
+  const firebaseConfig = {
+    apiKey: "API_KEY_ANDA",
+    authDomain: "PROJECT_ID.firebaseapp.com",
+    projectId: "PROJECT_ID",
+    appId: "APP_ID_ANDA"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  window.loginGoogleFirebase = async function () {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      alert("Gagal login Google: " + err.message);
+    }
+  };
+
+  window.logoutFirebase = async function () {
+    await signOut(auth);
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    const gate = document.getElementById("authGateScreen");
+    const shell = document.getElementById("appShell");
+    if (user) {
+      gate.classList.add("hidden");
+      shell.classList.add("authenticated");
+      document.getElementById("userDisplayName").innerText = user.displayName || "Pengguna Google";
+      document.getElementById("userDisplayEmail").innerText = user.email || "";
+    } else {
+      gate.classList.remove("hidden");
+      shell.classList.remove("authenticated");
+    }
+  });
+</script>
     <script>
         const SUPABASE_URL = 'https://uiktjkqqbapqglaxqlmg.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpa3Rqa3FxYmFwcWdsYXhxbG1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjk4OTIsImV4cCI6MjEwMTUwNTg5Mn0.PfrgCs3KlJDM5dY5yFshP8L-zbqHQeNEDjp0W6UbUaY';
