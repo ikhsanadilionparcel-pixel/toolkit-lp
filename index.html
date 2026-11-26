@@ -993,6 +993,9 @@ window.toggleFavorite = async function (itemId, event) {
                 avatarEl.style.display = 'none';
             }
 
+            await loadUserAccessRole(user.email);
+            await loadFavoritesFromSupabase();
+
             if (!workspaceInitialized) {
                 workspaceInitialized = true;
                 await loadCategoriesFromSupabase();
@@ -1018,10 +1021,6 @@ window.toggleFavorite = async function (itemId, event) {
         function getUserStorageKey(baseKey) {
             const uid = currentUser ? currentUser.uid : 'guest';
             return `${baseKey}_${uid}_${currentActiveLevel}`;
-        }
-
-        function getFavoritesList() {
-            return JSON.parse(localStorage.getItem(getUserStorageKey('kb_favorites')) || '[]').map(String);
         }
 
         function saveFavoritesList(list) {
@@ -1076,6 +1075,7 @@ window.toggleFavorite = async function (itemId, event) {
             document.getElementById('tableSectionTitle').innerText = 'Daftar Informasi';
             updateFilterLabel();
 
+            await loadFavoritesFromSupabase();
             renderCategories();
             await loadSourceInformations();
             preloadMirrorData();
@@ -1099,18 +1099,7 @@ window.toggleFavorite = async function (itemId, event) {
             filterInformations();
         };
 
-        window.toggleFavorite = function (itemId, event) {
-            event.stopPropagation();
-            const idStr = String(itemId);
-            let favs = getFavoritesList();
-            if (favs.includes(idStr)) {
-                favs = favs.filter(id => id !== idStr);
-            } else {
-                favs.push(idStr);
-            }
-            saveFavoritesList(favs);
-            filterInformations();
-        };
+
 
         function trackRecentView(itemId) {
             const idStr = String(itemId);
@@ -1434,8 +1423,8 @@ window.toggleFavorite = async function (itemId, event) {
                         <td style="color:var(--text-muted); font-size:11px;">${formattedDate}</td>
                         <td style="text-align:right;" onclick="event.stopPropagation()">
                             <button class="action-btn-icon" onclick="toggleFavorite('${item.id}', event)" title="${isFav ? 'Hapus dari Favorit' : 'Tambah ke Favorit'}">${isFav ? '⭐' : '☆'}</button>
-                            <button class="action-btn-icon" onclick='openEditInfoModal(${JSON.stringify(item)})' title="Edit Dokumen">✏️</button>
-                            <button class="action-btn-icon" onclick="triggerConfirmDelete('${item.id}', '${escapeHtml(item.title)}')" title="Hapus Dokumen">🗑️</button>
+                            ${canEditData() ? `<button class="action-btn-icon" onclick='openEditInfoModal(${JSON.stringify(item)})' title="Edit Dokumen">✏️</button>` : ''}
+                            ${canEditData() ? `<button class="action-btn-icon" onclick="triggerConfirmDelete('${item.id}', '${escapeHtml(item.title)}')" title="Hapus Dokumen">🗑️</button>` : ''}
                         </td>
                     </tr>
                 `;
@@ -1455,6 +1444,7 @@ window.toggleFavorite = async function (itemId, event) {
         };
 
         window.triggerConfirmDelete = function (id, title) {
+            if (!canEditData()) return alert('Akses viewer hanya dapat membaca dan memfavoritkan.');
             pendingDeleteId = id;
             document.getElementById('confirmDeleteText').innerText = `Apakah Anda yakin ingin menghapus "${title}"?`;
             document.getElementById('btnConfirmDeleteExecute').onclick = () => executeDeleteInformation(id);
@@ -1467,6 +1457,7 @@ window.toggleFavorite = async function (itemId, event) {
         };
 
         async function executeDeleteInformation(id) {
+            if (!canEditData()) return;
             const tableName = currentActiveLevel === 'L1' ? 'source_informasi' : 'source_informasi2';
             const { error } = await supabaseClient.from(tableName).delete().eq('id', id);
             closeConfirmDeleteModal();
@@ -1717,6 +1708,7 @@ window.toggleFavorite = async function (itemId, event) {
         };
 
         window.openManageCategoriesModal = function () {
+            if (!canEditData()) return alert('Akses viewer hanya dapat membaca dan memfavoritkan.');
             const parentSelect = document.getElementById('newCatParent');
             parentSelect.innerHTML = '<option value="">-- Kategori Utama (Tanpa Induk) --</option>';
 
@@ -1742,6 +1734,7 @@ window.toggleFavorite = async function (itemId, event) {
         };
 
         window.saveNewCategory = async function () {
+            if (!canEditData()) return;
             const level = document.getElementById('newCatLevel').value;
             const name = document.getElementById('newCatName').value.trim();
             const parent_id = document.getElementById('newCatParent').value || null;
@@ -1759,6 +1752,7 @@ window.toggleFavorite = async function (itemId, event) {
         };
 
         window.toggleDeleteCategory = async function (id) {
+            if (!canEditData()) return;
             if (!confirm('Nonaktifkan kategori ini?')) return;
             await supabaseClient.from('categories').update({ is_active: false }).eq('id', id);
             await loadCategoriesFromSupabase();
@@ -1766,6 +1760,7 @@ window.toggleFavorite = async function (itemId, event) {
         };
 
         window.openAddInfoModal = function () {
+            if (!canEditData()) return alert('Akses viewer hanya dapat membaca dan memfavoritkan.');
             document.getElementById('modalFormTitle').innerText = `Tambah Informasi Baru (${currentActiveLevel})`;
             document.getElementById('infoIdInput').value = '';
             document.getElementById('infoTitleInput').value = '';
@@ -1786,6 +1781,7 @@ window.toggleFavorite = async function (itemId, event) {
         };
 
         window.openEditInfoModal = function (item) {
+            if (!canEditData()) return alert('Akses viewer hanya dapat membaca dan memfavoritkan.');
             document.getElementById('modalFormTitle').innerText = `Edit Informasi (${currentActiveLevel})`;
             document.getElementById('infoIdInput').value = item.id;
             document.getElementById('infoTitleInput').value = item.title || '';
@@ -1828,6 +1824,7 @@ window.toggleFavorite = async function (itemId, event) {
         window.closeAddInfoModal = function () { document.getElementById('addInfoModal').classList.remove('active'); };
 
         window.saveInformation = async function () {
+            if (!canEditData()) return;
             const id = document.getElementById('infoIdInput').value;
             const title = document.getElementById('infoTitleInput').value.trim();
             const category = document.getElementById('infoCategoryInput').value;
