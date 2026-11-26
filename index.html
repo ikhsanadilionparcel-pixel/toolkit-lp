@@ -803,7 +803,119 @@
         let pendingDeleteId = null;
         let selectedSuggestionIndex = -1;
         const mirrorApiCache = {};
+let currentUserRole = 'viewer'; // Default aman: hanya baca & favorite
+let favoritesCache = [];
 
+// 1. Ambil role user dari tabel user_access berdasarkan email akun Google
+async function loadUserAccessRole(email) {
+    if (!email) {
+        currentUserRole = 'viewer';
+        applyRolePermissions();
+        return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await supabaseClient
+        .from('user_access')
+        .select('role, is_active')
+        .ilike('email', normalizedEmail)
+        .eq('is_active', true)
+        .maybeSingle();
+
+    if (error || !data) {
+        currentUserRole = 'viewer';
+    } else {
+        currentUserRole = data.role === 'editor' || data.role === 'admin' ? data.role : 'viewer';
+    }
+
+    applyRolePermissions();
+}
+
+function canEditData() {
+    return currentUserRole === 'editor' || currentUserRole === 'admin';
+}
+
+// Sembunyikan/nonaktifkan kontrol edit, hapus, tambah materi, & kelola kategori jika bukan editor/admin
+function applyRolePermissions() {
+    const canEdit = canEditData();
+    const badgeEl = document.getElementById('syncStatusBadge');
+    if (badgeEl) {
+        badgeEl.innerText = canEdit ? '✏️ Akses: Editor' : '👁️ Akses: Viewer (Baca & Fav)';
+    }
+
+    // Contoh: sembunyikan menu Kelola Kategori & Tambah Materi untuk viewer
+    document.querySelectorAll('[onclick*="openManageCategoriesModal"], [onclick*="openAddInfoModal"]').forEach(el => {
+        el.style.display = canEdit ? '' : 'none';
+    });
+}
+
+// 2. Muat daftar favorite dari Supabase sesuai uid & level aktif
+async function loadFavoritesFromSupabase() {
+    if (!currentUser) {
+        favoritesCache = [];
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from('user_favorites')
+        .select('item_id')
+        .eq('user_uid', currentUser.uid)
+        .eq('layer_level', currentActiveLevel);
+
+    if (!error && Array.isArray(data)) {
+        favoritesCache = data.map(row => String(row.item_id));
+        localStorage.setItem(getUserStorageKey('kb_favorites'), JSON.stringify(favoritesCache));
+    } else {
+        // Fallback cache lokal jika gangguan jaringan sesaat
+        favoritesCache = JSON.parse(localStorage.getItem(getUserStorageKey('kb_favorites')) || '[]').map(String);
+    }
+}
+
+function getFavoritesList() {
+    return favoritesCache;
+}
+
+// 3. Toggle favorite langsung ke Supabase (lintas PC/browser)
+window.toggleFavorite = async function (itemId, event) {
+    event.stopPropagation();
+    if (!currentUser) return;
+
+    const idStr = String(itemId);
+    const alreadyFav = favoritesCache.includes(idStr);
+
+    if (alreadyFav) {
+        const { error } = await supabaseClient
+            .from('user_favorites')
+            .delete()
+            .eq('user_uid', currentUser.uid)
+            .eq('layer_level', currentActiveLevel)
+            .eq('item_id', idStr);
+
+        if (error) {
+            alert('Gagal menghapus favorit: ' + error.message);
+            return;
+        }
+        favoritesCache = favoritesCache.filter(id => id !== idStr);
+    } else {
+        const { error } = await supabaseClient
+            .from('user_favorites')
+            .insert([{
+                user_uid: currentUser.uid,
+                user_email: currentUser.email || '',
+                layer_level: currentActiveLevel,
+                item_id: idStr
+            }]);
+
+        if (error) {
+            alert('Gagal menyimpan favorit: ' + error.message);
+            return;
+        }
+        favoritesCache.push(idStr);
+    }
+
+    localStorage.setItem(getUserStorageKey('kb_favorites'), JSON.stringify(favoritesCache));
+    filterInformations();
+};
         function showAuthError(msg) {
             const box = document.getElementById('authStatusBox');
             if (!box) return;
